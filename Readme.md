@@ -1,13 +1,20 @@
-### MVP PLASMA
+### PLASMA MVP WIP
 
-This repo implements https://ethresear.ch/t/minimal-viable-plasma/426.
+We're implementing the [Minium Viable Plasma](https://ethresear.ch/t/minimal-viable-plasma/426.)
+
+
+Current repo includes:
+
+1. Root chain smart contracts
+2. Building blocks for chail chain
+
+The rest of the child chain and client will pushed up after an internal audit.
+
+To deploy root chain smart contracts start testrpc on port 8454 and run:
+    ``make root-chain``
+
+To run tests:
+    ``make tests``
 
 Use this to close testrpc: 
     kill -9 $ \`lsof -i:8545 -t\`
-
-Notes:
-    Right now confirmation signatures are:
-    confirmationHash = keccak256(txHash, sig1, sig2, rootHash)
-    confirmationSig = ecsign(confirmationHash, key)
-    
-    For those receiving a confirmation they should be able to prove that there transaction is included on the root chain but does that information need to be included in the confirmation signature itself or can the information simply be passed along?

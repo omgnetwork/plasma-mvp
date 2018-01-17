@@ -19,10 +19,6 @@ setup(
         'ethereum==2.1.3',
         'click==6.7',
     ],
-    # entry_points="""
-    #     [console_scripts]
-    #     pm=plasma.cli:main
-    # """,
     entry_points={
         'console_scripts': ["pm=plasma.cli:main"],
     }
