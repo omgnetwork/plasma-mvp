@@ -15,10 +15,16 @@ contract RootChain {
     using Merkle for bytes32;
 
     /*
+     * Events
+     */
+    event Deposit(address depositor, uint256 amount);
+
+    /*
      *  Storage
      */
     mapping(uint256 => childBlock) public childChain;
     mapping(uint256 => exit) public exits;
+    mapping(uint256 => uint256) public exitIds;
     PriorityQueue exitsQueue;
     address public authority;
     uint256 public currentChildBlock;
@@ -99,6 +105,7 @@ contract RootChain {
             created_at: block.timestamp
         });
         currentChildBlock = currentChildBlock.add(1);
+        Deposit(txList[6].toAddress(), txList[7].toUint());
     }
 
     function getChildChain(uint256 blockNumber)
@@ -129,30 +136,26 @@ contract RootChain {
         uint256 inputCount = txList[3].toUint() * 1000000 + txList[0].toUint();
         require(Validate.checkSigs(txHash, childChain[txPos[0]].root, inputCount, sigs));
         require(merkleHash.checkMembership(txPos[1], childChain[txPos[0]].root, proof));
-        uint256 priority = Math.max(txPos[0], weekOldBlock) * 1000000000 + txPos[1] * 10000 + txPos[2];
+        uint256 priority = 1000000000 + txPos[1] * 10000 + txPos[2];
+        uint256 exitId = txPos[0].mul(priority);
+        priority = priority.mul(Math.max(txPos[0], weekOldBlock));
+        require(exitIds[exitId] == 0);
         require(exits[priority].amount == 0);
+        exitIds[exitId] = priority;
         exitsQueue.insert(priority);
         exits[priority] = exit({
             owner: txList[6 + 2 * txPos[2]].toAddress(),
             amount: txList[7 + 2 * txPos[2]].toUint(),
             utxoPos: txPos
         });
-        uint256 twoWeekOldTimestamp = block.timestamp.sub(2 weeks);
-        exit memory currentExit = exits[exitsQueue.getMin()];
-        while (childChain[currentExit.utxoPos[0]].created_at < twoWeekOldTimestamp) {
-            if (msg.gas < 20000)
-                break;
-            currentExit.owner.transfer(currentExit.amount);
-            delete exits[exitsQueue.delMin()];
-            currentExit = exits[exitsQueue.getMin()];
-        }
     }
 
-    function challengeExit(uint256 priority, uint256[3] txPos, bytes txBytes, bytes proof, bytes sigs, bytes confirmationSig)
+    function challengeExit(uint256 exitId, uint256[3] txPos, bytes txBytes, bytes proof, bytes sigs, bytes confirmationSig)
         public
     {
         var txList = txBytes.toRLPItem().toList();
         require(txList.length == 11);
+        uint256 priority = exitIds[exitId];
         uint256[3] memory exitsUtxoPos = exits[priority].utxoPos;
         require(exitsUtxoPos[0] == txList[0 + 2 * exitsUtxoPos[2]].toUint());
         require(exitsUtxoPos[1] == txList[1 + 2 * exitsUtxoPos[2]].toUint());
@@ -164,5 +167,24 @@ contract RootChain {
         require(owner == ECRecovery.recover(confirmationHash, confirmationSig));
         require(merkleHash.checkMembership(txPos[1], childChain[txPos[0]].root, proof));
         delete exits[priority];
+        delete exitIds[exitId];
+    }
+
+    function finalizeExits()
+        public
+        incrementOldBlocks
+        returns (uint256)
+    {
+        uint256 twoWeekOldTimestamp = block.timestamp.sub(2 weeks);
+        exit memory currentExit = exits[exitsQueue.getMin()];
+        while (childChain[currentExit.utxoPos[0]].created_at < twoWeekOldTimestamp && exitsQueue.currentSize() > 0) {
+            // return childChain[currentExit.utxoPos[0]].created_at;
+            uint256 exitId = currentExit.utxoPos[0] * 1000000000 + currentExit.utxoPos[1] * 10000 + currentExit.utxoPos[2];
+            currentExit.owner.transfer(currentExit.amount);
+            uint256 priority = exitsQueue.delMin();
+            delete exits[priority];
+            delete exitIds[exitId];
+            currentExit = exits[exitsQueue.getMin()];
+        }
     }
 }
