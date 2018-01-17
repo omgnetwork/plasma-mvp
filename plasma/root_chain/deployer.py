@@ -27,12 +27,12 @@ class Deployer(object):
         file_name = path.split('/')[1]
         contract_name = file_name.split('.')[0]
         path, contracts = self.get_dirs(path)
-
+    
         compiled_sol = compile_standard(
                         {'language': 'Solidity',
                             'sources': {**{path.split('/')[-1]: {'urls': [path]}}, **contracts},
                             },
-                        allow_paths="/Users/Knott/coding_jobs/omisego/plasma_mvp/simple_plasma/plasma/root_chain/contracts")
+                        allow_paths=OWN_DIR + "/contracts")
         abi = compiled_sol['contracts'][file_name][contract_name]['abi']
         bytecode = compiled_sol['contracts'][file_name][contract_name]['evm']['bytecode']['object']
         contract_file = open("contract_data/%s.json" % (file_name.split('.')[0]),"w+")
