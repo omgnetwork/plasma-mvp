@@ -1,7 +1,6 @@
 import rlp
 from ethereum import utils as u
 from ethereum import transactions, messages
-from viper import utils as viper_utils
 from plasma.utils.merkle.fixed_merkle import FixedMerkle
 
 def get_empty_merkle_tree_hash(depth):

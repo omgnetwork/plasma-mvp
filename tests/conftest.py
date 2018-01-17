@@ -5,7 +5,6 @@ from ethereum.abi import ContractTranslator
 from ethereum import transactions, messages, utils
 from plasma.utils import utils as plasma_utils
 from plasma.root_chain.deployer import Deployer
-from viper import utils as viper_utils
 import os
 
 

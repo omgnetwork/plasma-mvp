@@ -17,7 +17,10 @@ setup(
     include_package_data=True,
     install_requires=[
         'ethereum==2.1.3',
+        'web3',
+        'py-solc',
         'click==6.7',
+        'pytest',
     ],
     entry_points={
         'console_scripts': ["pm=plasma.cli:main"],
