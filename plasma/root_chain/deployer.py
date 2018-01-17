@@ -25,7 +25,7 @@ class Deployer(object):
 
     def compile_contract(self, path, args=()):
         file_name = path.split('/')[1]
-        contract_name = ':' + file_name.split('.')[0]
+        contract_name = file_name.split('.')[0]
         path, contracts = self.get_dirs(path)
 
         compiled_sol = compile_standard(
@@ -33,8 +33,8 @@ class Deployer(object):
                             'sources': {**{path.split('/')[-1]: {'urls': [path]}}, **contracts},
                             },
                         allow_paths="/Users/Knott/coding_jobs/omisego/plasma_mvp/simple_plasma/plasma/root_chain/contracts")
-        abi = compiled_sol['contracts']['RootChain.sol']['RootChain']['abi']
-        bytecode = compiled_sol['contracts']['RootChain.sol']['RootChain']['evm']['bytecode']['object']
+        abi = compiled_sol['contracts'][file_name][contract_name]['abi']
+        bytecode = compiled_sol['contracts'][file_name][contract_name]['evm']['bytecode']['object']
         contract_file = open("contract_data/%s.json" % (file_name.split('.')[0]),"w+")
         json.dump(abi, contract_file)
         contract_file.close()

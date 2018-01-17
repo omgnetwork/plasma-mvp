@@ -3,10 +3,10 @@ help:
 	@echo "clean-build - remove build artifacts"
 	@echo "clean-pyc - remove Python file artifacts"
 	@echo "lint - check style with flake8"
-	@echo "test - run tests quickly with the default Python"
+	@echo "test - runs repos tests using pytest"
 
 root-chain: 
-	python root_chain.py
+	python deployment.py
 
 clean: clean-build clean-pyc
 
@@ -22,3 +22,6 @@ clean-pyc:
 
 lint:
 	flake8 plasma
+
+test:
+	python -m pytest

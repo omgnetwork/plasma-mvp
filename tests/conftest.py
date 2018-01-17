@@ -52,6 +52,7 @@ def u():
     utils.plasma = plasma_utils
     return utils
 
+
 @pytest.fixture
 def get_contract(t, u):
     def create_contract(path, args=(), sender=t.k0):
