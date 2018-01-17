@@ -15,7 +15,7 @@ class Deployer(object):
         self.w3 = Web3(provider)
 
     def get_dirs(self,path):
-        abs_contract_path = os.path.realpath(os.path.join(OWN_DIR, '..', 'root_chain', 'contracts'))
+        abs_contract_path = os.path.realpath(os.path.join(OWN_DIR, 'contracts'))
         extra_args = [[file, [os.path.realpath(os.path.join(r,file))]] for r,d,f in os.walk(abs_contract_path) for file in f]
         contracts = {}
         for contract in extra_args:
@@ -24,11 +24,9 @@ class Deployer(object):
         return path, contracts
 
     def compile_contract(self, path, args=()):
-        contract_name = path.split('/')[1]
-        contract_name += ':' + contract_name.split('.')[0]
+        file_name = path.split('/')[1]
+        contract_name = ':' + file_name.split('.')[0]
         path, contracts = self.get_dirs(path)
-        # if args:
-        #     args = [x.address if isinstance(x, t.ABIContract) else x for x in args]
 
         compiled_sol = compile_standard(
                         {'language': 'Solidity',
@@ -37,11 +35,15 @@ class Deployer(object):
                         allow_paths="/Users/Knott/coding_jobs/omisego/plasma_mvp/simple_plasma/plasma/root_chain/contracts")
         abi = compiled_sol['contracts']['RootChain.sol']['RootChain']['abi']
         bytecode = compiled_sol['contracts']['RootChain.sol']['RootChain']['evm']['bytecode']['object']
+        contract_file = open("contract_data/%s.json" % (file_name.split('.')[0]),"w+")
+        json.dump(abi, contract_file)
+        contract_file.close()
         return abi, bytecode
 
     def create_contract(self, path, args=(), sender=t.k0):
         abi, bytecode = self.compile_contract(path, args)
         contract= self.w3.eth.contract(abi=abi, bytecode=bytecode)
+
         # Get transaction hash from deployed contract
         tx_hash = contract.deploy(transaction={'from': self.w3.eth.accounts[0], 'gas': 4410000}, args=args)
 
