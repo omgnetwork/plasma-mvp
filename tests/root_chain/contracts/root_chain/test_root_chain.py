@@ -13,10 +13,10 @@ def root_chain(t, get_contract):
 
 
 def test_deposit(t, root_chain):
-    owner, value_1, key = t.a1, 100, t.k1
+    owner, value_1 = t.a1, 100
     null_address = b'\x00' * 20
     tx = Transaction(0, 0, 0, 0, 0, 0,
-                owner, value_1, null_address, 0, 0)
+                     owner, value_1, null_address, 0, 0)
     tx_bytes = rlp.encode(tx, UnsignedTransaction)
     root_chain.deposit(tx_bytes, value=value_1)
     assert root_chain.getChildChain(1)[0] == get_merkle_of_leaves(16, [tx.hash + tx.sig1 + tx.sig2]).root
@@ -29,7 +29,7 @@ def test_start_exit(t, root_chain, assert_tx_failed):
     owner, value_1, key = t.a1, 100, t.k1
     null_address = b'\x00' * 20
     tx1 = Transaction(0, 0, 0, 0, 0, 0,
-                owner, value_1, null_address, 0, 0)
+                      owner, value_1, null_address, 0, 0)
     tx_bytes1 = rlp.encode(tx1, UnsignedTransaction)
     root_chain.deposit(tx_bytes1, value=value_1)
     merkle = FixedMerkle(16, [tx1.merkle_hash], True)
@@ -42,12 +42,12 @@ def test_start_exit(t, root_chain, assert_tx_failed):
     root_chain.startExit([1, 0, 0], tx_bytes1, proof, sigs, sender=key)
     t.chain.head_state.timestamp += week_and_a_half
     # Cannot exit twice off of the same utxo
-    assert_tx_failed(lambda:root_chain.startExit([1, 0, 0], tx_bytes1, proof, sigs, sender=key));
+    assert_tx_failed(lambda: root_chain.startExit([1, 0, 0], tx_bytes1, proof, sigs, sender=key))
     assert root_chain.getExit(priority1) == ['0x' + owner.hex(), 100, [1, 0, 0]]
     t.chain.revert(snapshot)
 
     tx2 = Transaction(1, 0, 0, 0, 0, 0,
-                owner, value_1, null_address, 0, 0)
+                      owner, value_1, null_address, 0, 0)
     tx2.sign1(key)
     tx_bytes2 = rlp.encode(tx2, UnsignedTransaction)
     merkle = FixedMerkle(16, [tx2.merkle_hash], True)
@@ -65,7 +65,7 @@ def test_start_exit(t, root_chain, assert_tx_failed):
 
     root_chain.deposit(tx_bytes1, value=value_1)
     tx3 = Transaction(2, 0, 0, 3, 0, 0,
-                owner, value_1, null_address, 0, 0)
+                      owner, value_1, null_address, 0, 0)
     tx3.sign1(key)
     tx3.sign2(key)
     tx_bytes3 = rlp.encode(tx3, UnsignedTransaction)
@@ -86,7 +86,7 @@ def test_challenge_exit(t, u, root_chain):
     owner, value_1, key = t.a1, 100, t.k1
     null_address = b'\x00' * 20
     tx1 = Transaction(0, 0, 0, 0, 0, 0,
-                owner, value_1, null_address, 0, 0)
+                      owner, value_1, null_address, 0, 0)
     tx_bytes1 = rlp.encode(tx1, UnsignedTransaction)
     root_chain.deposit(tx_bytes1, value=value_1)
     merkle = FixedMerkle(16, [tx1.merkle_hash], True)
@@ -95,7 +95,7 @@ def test_challenge_exit(t, u, root_chain):
     sigs = tx1.sig1 + tx1.sig2 + confirmSig1
     root_chain.startExit([1, 0, 0], tx_bytes1, proof, sigs, sender=key)
     tx2 = Transaction(1, 0, 0, 0, 0, 0,
-                owner, value_1, null_address, 0, 0)
+                      owner, value_1, null_address, 0, 0)
     tx2.sign1(key)
     tx_bytes2 = rlp.encode(tx2, UnsignedTransaction)
     merkle = FixedMerkle(16, [tx2.merkle_hash], True)
@@ -117,7 +117,7 @@ def test_finalize_exits(t, u, root_chain):
     owner, value_1, key = t.a1, 100, t.k1
     null_address = b'\x00' * 20
     tx1 = Transaction(0, 0, 0, 0, 0, 0,
-                owner, value_1, null_address, 0, 0)
+                      owner, value_1, null_address, 0, 0)
     tx_bytes1 = rlp.encode(tx1, UnsignedTransaction)
     root_chain.deposit(tx_bytes1, value=value_1)
     merkle = FixedMerkle(16, [tx1.merkle_hash], True)
