@@ -1,6 +1,7 @@
 from .node import Node
 from ethereum.utils import sha3
 
+
 class FixedMerkle(object):
 
     def __init__(self, depth, leaves=[], hashed=False):
@@ -25,22 +26,21 @@ class FixedMerkle(object):
         next_level = len(leaves)
         tree_level = []
         for i in range(0, next_level, 2):
-            combined = sha3(leaves[i].data + leaves[i+1].data)
-            next_node = Node(combined, leaves[i], leaves[i+1])
+            combined = sha3(leaves[i].data + leaves[i + 1].data)
+            next_node = Node(combined, leaves[i], leaves[i + 1])
             tree_level.append(next_node)
         self.tree.append(tree_level)
         self.create_tree(tree_level)
-
 
     def check_membership(self, leaf, index, proof):
         if not self.hashed:
             leaf = sha3(leaf)
         computed_hash = leaf
-        for i in range(0, self.depth*32, 32):
-            segment = proof[i:i+32]
+        for i in range(0, self.depth * 32, 32):
+            segment = proof[i:i + 32]
             if index % 2 == 0:
                 computed_hash = sha3(computed_hash + segment)
-            else: 
+            else:
                 computed_hash = sha3(segment + computed_hash)
             index = index // 2
         return computed_hash == self.root
@@ -59,7 +59,6 @@ class FixedMerkle(object):
             index = index // 2
             proof += self.tree[i][sibling_index].data
         return proof
-
 
     def is_member(self, leaf):
         return leaf in self.leaves

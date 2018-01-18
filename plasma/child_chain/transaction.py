@@ -1,7 +1,6 @@
 import rlp
 from rlp.sedes import big_endian_int, binary
 from ethereum import utils
-from plasma.config import plasma_config
 from plasma.utils.utils import get_sender, sign
 
 
@@ -23,14 +22,13 @@ class Transaction(rlp.Serializable):
         ('sig2', binary),
     ]
 
-    # fields 
     def __init__(self, blknum1, txindex1, oindex1,
-                    blknum2, txindex2, oindex2,
-                    newowner1, amount1, 
-                    newowner2, amount2,
-                    fee,
-                    sig1 = b'\x00' * 65,
-                    sig2 = b'\x00' * 65):
+                 blknum2, txindex2, oindex2,
+                 newowner1, amount1,
+                 newowner2, amount2,
+                 fee,
+                 sig1=b'\x00' * 65,
+                 sig2=b'\x00' * 65):
         # Input 1
         self.blknum1 = blknum1
         self.txindex1 = txindex1
@@ -80,5 +78,6 @@ class Transaction(rlp.Serializable):
     @property
     def sender2(self):
         return get_sender(self.hash, self.sig2)
+
 
 UnsignedTransaction = Transaction.exclude(['sig1', 'sig2'])

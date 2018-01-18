@@ -13,7 +13,7 @@ class Block(rlp.Serializable):
         ('sig', binary),
     ]
 
-    def __init__(self, transaction_set = [], sig = b'\x00' * 65):
+    def __init__(self, transaction_set=[], sig=b'\x00' * 65):
         self.transaction_set = transaction_set
         self.sig = sig
         self.merkle = None
@@ -32,7 +32,8 @@ class Block(rlp.Serializable):
     @property
     def merkilize_transaction_set(self):
         hashed_transaction_set = [transaction.hash for transaction in self.transaction_set]
-        self.merkle = FixedMerkle(16, hashed_utxo_set).root
+        self.merkle = FixedMerkle(16, hashed_transaction_set).root
         return self.merkle
+
 
 UnsignedBlock = Block.exclude(['sig'])
