@@ -1,6 +1,6 @@
 ### PLASMA MVP WIP
 
-We're implementing the [Minimum Viable Plasma](https://ethresear.ch/t/minimal-viable-plasma/426.)
+We're implementing the [Minimum Viable Plasma](https://ethresear.ch/t/minimal-viable-plasma/426)
 
 
 Current repo includes:
