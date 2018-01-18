@@ -1,8 +1,10 @@
 import pytest
 
+
 @pytest.fixture
 def priority_queue(get_contract):
     return get_contract('DataStructures/PriorityQueue.sol')
+
 
 def test_priority_queue(t, priority_queue):
     priority_queue.insert(2)
