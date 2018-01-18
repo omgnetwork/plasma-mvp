@@ -39,33 +39,35 @@ def test_check_membership(u):
     for i in range(13):
         root = u.sha3(root + zeros_hashes[-32:])
         zeros_hashes += u.sha3(zeros_hashes[-32:] + zeros_hashes[-32:])
-    left_proof = leaf_2 + u.sha3(leaf_3 + leaf_4)  + zeros_hashes
+    left_proof = leaf_2 + u.sha3(leaf_3 + leaf_4) + zeros_hashes
     left_middle_proof = leaf_1 + u.sha3(leaf_3 + leaf_4) + zeros_hashes
     right_middle_proof = leaf_4 + u.sha3(leaf_1 + leaf_2) + zeros_hashes
     right_proof = leaf_3 + u.sha3(leaf_1 + leaf_2) + zeros_hashes
     fixed_merkle = FixedMerkle(16, [leaf_1, leaf_2, leaf_3, leaf_4], True)
-    assert  fixed_merkle.check_membership(leaf_1, 0, left_proof) == True
-    assert  fixed_merkle.check_membership(leaf_2, 1, left_middle_proof) == True
-    assert  fixed_merkle.check_membership(leaf_3, 2, right_middle_proof) == True
-    assert  fixed_merkle.check_membership(leaf_4, 3, right_proof) == True
+    assert fixed_merkle.check_membership(leaf_1, 0, left_proof) is True
+    assert fixed_merkle.check_membership(leaf_2, 1, left_middle_proof) is True
+    assert fixed_merkle.check_membership(leaf_3, 2, right_middle_proof) is True
+    assert fixed_merkle.check_membership(leaf_4, 3, right_proof) is True
+
 
 def test_create_membership_proof():
     leaves = [b'a', b'b', b'c']
     merkle = FixedMerkle(2, leaves)
     proof_1 = merkle.create_membership_proof(b'a')
     proof_2 = merkle.create_membership_proof(b'c')
-    assert merkle.check_membership(b'a', 0, proof_1) == True
-    assert merkle.check_membership(b'c', 2, proof_2) == True
+    assert merkle.check_membership(b'a', 0, proof_1) is True
+    assert merkle.check_membership(b'c', 2, proof_2) is True
+
 
 def test_is_member():
     leaves = [b'a', b'b', b'c']
     merkle = FixedMerkle(2, leaves, True)
-    assert merkle.is_member(b'b') == True
-    assert merkle.is_member(b'd') == False
+    assert merkle.is_member(b'b') is True
+    assert merkle.is_member(b'd') is False
 
 
 def test_non_member():
     leaves = [b'a', b'b', b'c']
     merkle = FixedMerkle(2, leaves, True)
-    assert merkle.not_member(b'b') == False
-    assert merkle.not_member(b'd') == True
+    assert merkle.not_member(b'b') is False
+    assert merkle.not_member(b'd') is True
