@@ -1,8 +1,7 @@
 import pytest
-import rlp
 from ethereum.tools import tester, _solidity
 from ethereum.abi import ContractTranslator
-from ethereum import transactions, messages, utils
+from ethereum import utils
 from plasma.utils import utils as plasma_utils
 from plasma.root_chain.deployer import Deployer
 import os
@@ -10,10 +9,12 @@ import os
 
 OWN_DIR = os.path.dirname(os.path.realpath(__file__))
 
+
 @pytest.fixture
 def t():
     tester.chain = tester.Chain()
     return tester
+
 
 def get_dirs(path):
     abs_contract_path = os.path.realpath(os.path.join(OWN_DIR, '..', 'plasma', 'root_chain', 'contracts'))
@@ -21,6 +22,7 @@ def get_dirs(path):
     extra_args = ' '.join(['{}={}'.format(d.split('/')[-1], d) for d in sub_dirs])
     path = '{}/{}'.format(abs_contract_path, path)
     return path, extra_args
+
 
 def create_abi(path):
     path, extra_args = get_dirs(path)
@@ -38,7 +40,7 @@ def assert_failed(t):
 
 @pytest.fixture
 def assert_tx_failed(t):
-    def assert_tx_failed(function_to_test, exception = tester.TransactionFailed):
+    def assert_tx_failed(function_to_test, exception=tester.TransactionFailed):
         initial_state = t.chain.snapshot()
         with pytest.raises(exception):
             function_to_test()
@@ -59,7 +61,7 @@ def get_contract(t, u):
         bytecode = u.decode_hex(hexcode)
         ct = ContractTranslator(abi)
         code = bytecode + (ct.encode_constructor_arguments(args) if args else b'')
-        address = t.chain.tx(sender=sender, to=b'', startgas=4*10**6, value=0, data=code)
+        address = t.chain.tx(sender=sender, to=b'', startgas=(4 * 10 ** 6), value=0, data=code)
         return t.ABIContract(t.chain, abi, address)
     return create_contract
 
@@ -67,5 +69,5 @@ def get_contract(t, u):
 @pytest.fixture
 def bytes_helper():
     def bytes_helper(inp, length):
-        return  bytes(length-len(inp)) + inp
+        return bytes(length - len(inp)) + inp
     return bytes_helper
