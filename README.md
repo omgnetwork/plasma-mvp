@@ -11,9 +11,11 @@ Install dependencies with
 
     python setup.py install 
 
+The MVP requires Solidity 0.4.18.
+
 The rest of the child chain and client will pushed up after an internal audit.
 
-To deploy root chain smart contracts start testrpc on port 8454 and run:
+To deploy root chain smart contracts start testrpc on port 8545 and run:
     ``make root-chain``
 
 To run tests:
