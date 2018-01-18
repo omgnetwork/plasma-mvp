@@ -1,7 +1,6 @@
 from ethereum.utils import sha3
 from plasma.utils.merkle.fixed_merkle import FixedMerkle
 from plasma.utils.utils import get_empty_merkle_tree_hash
-import rlp
 
 
 def test_initial_state():
@@ -34,7 +33,6 @@ def test_check_membership(u):
     leaf_3 = b'\xff' * 31 + b'\x03'
     leaf_4 = b'\xff' * 31 + b'\x04'
     root = u.sha3(u.sha3(leaf_1 + leaf_2) + u.sha3(leaf_3 + leaf_4))
-    zero_bytes = b'\x00' * 32
     zeros_hashes = get_empty_merkle_tree_hash(2)
     for i in range(13):
         root = u.sha3(root + zeros_hashes[-32:])
