@@ -1,0 +1,9 @@
+# Bytecode
+__pycache__/
+
+# Distibution
+dist/
+*.egg-info/
+
+# Testing
+.cache/
