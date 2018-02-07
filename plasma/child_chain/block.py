@@ -3,7 +3,7 @@ from rlp.sedes import binary, CountableList
 from ethereum import utils
 from plasma.utils.merkle.fixed_merkle import FixedMerkle
 from plasma.utils.utils import sign, get_sender
-from .transaction import Transaction
+from plasma.child_chain.transaction import Transaction
 
 
 class Block(rlp.Serializable):
@@ -31,9 +31,9 @@ class Block(rlp.Serializable):
 
     @property
     def merkilize_transaction_set(self):
-        hashed_transaction_set = [transaction.hash for transaction in self.transaction_set]
-        self.merkle = FixedMerkle(16, hashed_transaction_set).root
-        return self.merkle
+        hashed_transaction_set = [transaction.merkle_hash for transaction in self.transaction_set]
+        self.merkle = FixedMerkle(16, hashed_transaction_set, hashed=True)
+        return self.merkle.root
 
 
 UnsignedBlock = Block.exclude(['sig'])
