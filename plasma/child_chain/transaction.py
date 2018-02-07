@@ -42,14 +42,20 @@ class Transaction(rlp.Serializable):
         self.sig2 = sig2
 
         # Outputs
-        self.newowner1 = newowner1
+        self.newowner1 = utils.normalize_address(newowner1)
         self.amount1 = amount1
 
-        self.newowner2 = newowner2
+        self.newowner2 = utils.normalize_address(newowner2)
         self.amount2 = amount2
 
         # Fee
         self.fee = fee
+
+        self.confirmation1 = None
+        self.confirmation2 = None
+
+        self.spent1 = False
+        self.spent2 = False
 
     @property
     def hash(self):
