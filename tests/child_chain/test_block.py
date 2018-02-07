@@ -1,5 +1,5 @@
 import pytest
-from plasma.child_chain.block import Block, UnsignedBlock
+from plasma.child_chain.block import Block
 from plasma.utils.utils import sign, get_sender
 
 
@@ -16,5 +16,5 @@ def test_initial_state(block):
 
 def test_signature(t, block):
     block.sign(t.k0)
-    assert block.sig ==  sign(block.hash, t.k0)
-    assert  block.sender == get_sender(block.hash, sign(block.hash, t.k0))
+    assert block.sig == sign(block.hash, t.k0)
+    assert block.sender == get_sender(block.hash, sign(block.hash, t.k0))
