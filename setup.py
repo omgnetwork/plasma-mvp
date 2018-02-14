@@ -17,7 +17,10 @@ setup(
     include_package_data=True,
     install_requires=[
         'ethereum==2.3.0',
-        'web3',
+        'web3==3.16.4',
+        'werkzeug==0.13',
+        'json-rpc==1.10.8',
+        'plyvel==1.0.4',
         'py-solc',
         'click==6.7',
         'pytest',

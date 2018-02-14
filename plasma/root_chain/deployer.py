@@ -37,10 +37,10 @@ class Deployer(object):
         contract_file = open("contract_data/%s.json" % (file_name.split('.')[0]), "w+")
         json.dump(abi, contract_file)
         contract_file.close()
-        return abi, bytecode
+        return abi, bytecode, contract_name
 
     def create_contract(self, path, args=(), gas=4410000, sender=t.k0):
-        abi, bytecode = self.compile_contract(path, args)
+        abi, bytecode, contract_name = self.compile_contract(path, args)
         contract = self.w3.eth.contract(abi=abi, bytecode=bytecode)
 
         # Get transaction hash from deployed contract
@@ -52,4 +52,5 @@ class Deployer(object):
 
         # Contract instance in concise mode
         contract_instance = self.w3.eth.contract(abi, contract_address, ContractFactoryClass=ConciseContract)
+        print("Successfully deployed {} contract!".format(contract_name))
         return contract_instance
