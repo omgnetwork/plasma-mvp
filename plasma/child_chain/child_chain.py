@@ -54,7 +54,6 @@ class ChildChain(object):
             spent = self.blocks[blknum].transaction_set[txindex].spent2
             amount = self.blocks[blknum].transaction_set[txindex].amount2
         assert spent is False
-        spent = True
         return amount
 
     def submit_block(self, block):
@@ -66,7 +65,7 @@ class ChildChain(object):
         self.current_block = Block()
 
     def get_transaction(self, blknum, txindex):
-        return rlp.encode(self.block[blknum].transaction_set[txindex]).hex()
+        return rlp.encode(self.blocks[blknum].transaction_set[txindex]).hex()
 
     def get_block(self, blknum):
         return rlp.encode(self.blocks[blknum]).hex()

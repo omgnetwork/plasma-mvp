@@ -1,12 +1,8 @@
 import requests
-import json
 import rlp
 from plasma.child_chain.child_chain import ChildChain
 from plasma.child_chain.transaction import Transaction
 from plasma.child_chain.block import Block
-
-
-headers = {'content-type': 'application/json'}
 
 
 class ChildChainService(object):
@@ -22,8 +18,7 @@ class ChildChainService(object):
             "jsonrpc": "2.0",
             "id": 0,
         }
-        response = requests.post(self.url, data=json.dumps(payload),
-                                 headers=headers).json()
+        response = requests.post(self.url, json=payload).json()
         return response["result"]
 
     def submit_deposit(self, tx_hash):

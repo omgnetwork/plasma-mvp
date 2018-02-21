@@ -57,7 +57,7 @@ def u():
 @pytest.fixture
 def get_contract(t, u):
     def create_contract(path, args=(), sender=t.k0):
-        abi, hexcode = Deployer().compile_contract(path, args)
+        abi, hexcode, _ = Deployer().compile_contract(path, args)
         bytecode = u.decode_hex(hexcode)
         ct = ContractTranslator(abi)
         code = bytecode + (ct.encode_constructor_arguments(args) if args else b'')

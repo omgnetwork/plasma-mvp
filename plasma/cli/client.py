@@ -77,9 +77,7 @@ class ClientParser():
         amount2 = int(self.inp[10])
         fee = int(self.inp[11])
         key1 = utils.normalize_key(self.inp[12])
-        key2 = b''
-        if len(self.inp) == 14:
-            key2 = utils.normalize_key(self.inp[13])
+        key2 = utils.normalize_key(self.inp[13]) if len(self.inp) == 14 else b''
         tx = Transaction(blknum1, tx_pos1, utxo_pos1,
                          blknum2, tx_pos2, utxo_pos2,
                          newowner1, amount1,
@@ -106,9 +104,7 @@ class ClientParser():
         blknum, txindex, oindex = int(self.inp[1]), int(self.inp[2]), int(self.inp[3])
         txPos = [blknum, txindex, oindex]
         key1 = utils.normalize_key(self.inp[4])
-        key2 = b''
-        if len(self.inp) == 6:
-            key2 = utils.normalize_key(self.inp[5])
+        key2 = utils.normalize_key(self.inp[5]) if len(self.inp) == 6 else b''
         block = self.client.get_block(blknum)
         block = rlp.decode(utils.decode_hex(block), Block)
         tx = block.transaction_set[txindex]
