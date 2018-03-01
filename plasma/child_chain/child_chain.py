@@ -42,6 +42,10 @@ class ChildChain(object):
         # Check that input and output values are equal
         assert amount1 + amount2 == tx.amount1 + tx.amount2 + tx.fee
 
+        # Mark the inputs as spent
+        self.mark_utxo_spent(tx.blknum1, tx.txindex1, tx.oindex1)
+        self.mark_utxo_spent(tx.blknum2, tx.txindex2, tx.oindex2)
+
         self.current_block.transaction_set.append(tx)
 
     def valid_input_tx(self, blknum, txindex, oindex):
@@ -55,6 +59,12 @@ class ChildChain(object):
             amount = self.blocks[blknum].transaction_set[txindex].amount2
         assert spent is False
         return amount
+
+    def mark_utxo_spent(self, blknum, txindex, oindex):
+        if oindex == 0:
+            self.blocks[blknum].transaction_set[txindex].spent1 = True
+        else:
+            self.blocks[blknum].transaction_set[txindex].spent2 = True
 
     def submit_block(self, block):
         block = rlp.decode(utils.decode_hex(block), Block)

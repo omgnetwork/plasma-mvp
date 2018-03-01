@@ -1,6 +1,9 @@
 # Bytecode
 __pycache__/
 
+# Development
+env/
+
 # Distibution
 dist/
 *.egg-info/
