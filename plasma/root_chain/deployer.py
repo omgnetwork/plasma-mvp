@@ -34,7 +34,11 @@ class Deployer(object):
                                         allow_paths=OWN_DIR + "/contracts")
         abi = compiled_sol['contracts'][file_name][contract_name]['abi']
         bytecode = compiled_sol['contracts'][file_name][contract_name]['evm']['bytecode']['object']
-        contract_file = open("contract_data/%s.json" % (file_name.split('.')[0]), "w+")
+
+        # Create the contract_data folder if it doesn't already exist
+        os.makedirs('contract_data', exist_ok=True)
+
+        contract_file = open('contract_data/%s.json' % (file_name.split('.')[0]), "w+")
         json.dump(abi, contract_file)
         contract_file.close()
         return abi, bytecode, contract_name

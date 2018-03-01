@@ -4,7 +4,11 @@ from plasma.child_chain.transaction import Transaction
 from plasma.child_chain.block import Block
 from plasma.child_chain.child_chain import ChildChain
 
-def test_submit_double_spend():
+
+def test_submit_double_spend(t, get_contract):
+    # Make sure RootChain.sol is compiled
+    get_contract('RootChain/RootChain.sol')
+
     child_chain = ChildChain(None, None, None)
 
     # Create some valid inputs
