@@ -42,11 +42,25 @@ class ChildChain(object):
         # Check that input and output values are equal
         assert amount1 + amount2 == tx.amount1 + tx.amount2 + tx.fee
 
+        # Check that signatures are valid
+        self.valid_signatures(tx, tx.blknum1, tx.txindex1, tx.oindex1)
+        self.valid_signatures(tx, tx.blknum2, tx.txindex2, tx.oindex2)
+
         # Mark the inputs as spent
         self.mark_utxo_spent(tx.blknum1, tx.txindex1, tx.oindex1)
         self.mark_utxo_spent(tx.blknum2, tx.txindex2, tx.oindex2)
 
         self.current_block.transaction_set.append(tx)
+
+    def valid_signatures(self, tx, blknum, txindex, oindex):
+        if blknum == 0:
+            return
+
+        if oindex == 0:
+            valid = self.blocks[blknum].transaction_set[txindex].newowner1 == tx.sender1
+        else:
+            valid = self.blocks[blknum].transaction_set[txindex].newowner2 == tx.sender2
+        assert valid is True
 
     def valid_input_tx(self, blknum, txindex, oindex):
         if blknum == 0:
