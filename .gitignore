@@ -10,3 +10,4 @@ dist/
 
 # Testing
 .cache/
+contract_data/

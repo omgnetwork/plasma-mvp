@@ -61,6 +61,9 @@ class ChildChain(object):
         return amount
 
     def mark_utxo_spent(self, blknum, txindex, oindex):
+        if blknum == 0:
+            return
+
         if oindex == 0:
             self.blocks[blknum].transaction_set[txindex].spent1 = True
         else:
