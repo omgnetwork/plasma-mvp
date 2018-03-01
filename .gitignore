@@ -1,5 +1,5 @@
 # Bytecode
-__pycache__/
+**/__pycache__/
 
 # Development
 env/
@@ -10,4 +10,5 @@ dist/
 
 # Testing
 .cache/
+.pytest_cache/
 contract_data/
