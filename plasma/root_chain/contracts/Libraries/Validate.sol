@@ -13,7 +13,7 @@ library Validate {
         bytes memory sig1 = ByteUtils.slice(sigs, 0, 65);
         bytes memory sig2 = ByteUtils.slice(sigs, 65, 65);
         bytes memory confSig1 = ByteUtils.slice(sigs, 130, 65);
-        bytes32 confirmationHash = keccak256(txHash, sig1, sig2, rootHash);
+        bytes32 confirmationHash = keccak256(txHash, rootHash);
         if (inputCount == 0) {
             return msg.sender == ECRecovery.recover(confirmationHash, confSig1);
         }

@@ -21,7 +21,7 @@ ZEROS_BYTES = [b'\x00' * 32]
 
 
 def confirm_tx(tx, root, key):
-    return sign(u.sha3(tx.hash + tx.sig1 + tx.sig2 + root), key)
+    return sign(u.sha3(tx.hash + root), key)
 
 
 def sign(hash, key):
