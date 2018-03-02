@@ -45,7 +45,8 @@ class Client(object):
         self.child_chain.submit_block(block)
 
     def withdraw(self, txPos, tx, proof, sigs):
-        self.root_chain.startExit(txPos, rlp.encode(tx, UnsignedTransaction), proof, sigs, transact={'from': '0x' + tx.newowner1.hex()})
+        utxoPos = txPos[0] * 1000000000 + txPos[1] * 10000 * txPos[2] + 0
+        self.root_chain.startExit(utxoPos, rlp.encode(tx, UnsignedTransaction), proof, sigs, transact={'from': '0x' + tx.newowner1.hex()})
 
     def get_transaction(self, blknum, txindex):
         return self.child_chain.get_transaction(blknum, txindex)
