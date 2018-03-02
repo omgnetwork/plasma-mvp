@@ -17,7 +17,7 @@ library Validate {
         if (inputCount == 0) {
             return msg.sender == ECRecovery.recover(confirmationHash, confSig1);
         }
-        if (inputCount < 1000000) {
+        if (inputCount < 1000000000) {
             return ECRecovery.recover(txHash, sig1) == ECRecovery.recover(confirmationHash, confSig1);
         } else {
             bytes memory confSig2 = ByteUtils.slice(sigs, 195, 65);
