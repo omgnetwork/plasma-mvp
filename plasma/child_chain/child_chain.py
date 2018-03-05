@@ -4,7 +4,6 @@ from plasma.config import plasma_config
 from ethereum import utils
 from .block import Block
 from .transaction import Transaction
-from web3.contract import ConciseContract
 from plasma.root_chain.deployer import Deployer
 from web3 import HTTPProvider
 
@@ -14,18 +13,20 @@ class ChildChain(object):
     def __init__(self, authority, root_chain_provider=HTTPProvider('http://localhost:8545'), child_chain_url="http://localhost:8546/jsonrpc"):
         deployer = Deployer(root_chain_provider)
         abi = json.load(open("contract_data/RootChain.json"))
-        self.w3 = deployer.w3
-        self.root_chain = self.w3.eth.contract(abi, plasma_config['ROOT_CHAIN_CONTRACT_ADDRESS'], ContractFactoryClass=ConciseContract)
+        self.root_chain = deployer.w3.eth.contract(abi, plasma_config['ROOT_CHAIN_CONTRACT_ADDRESS'])
         self.authority = authority
         self.blocks = {}
         self.current_block_number = 1
         self.current_block = Block()
         self.pending_transactions = []
 
-    def submit_deposit(self, tx_hash):
-        tx = self.w3.eth.getTransaction(tx_hash)
-        newowner1 = tx['from']
-        amount1 = tx['value']
+        # Register for deposit event listener
+        deposit_filter = self.root_chain.on('Deposit')
+        deposit_filter.watch(self.apply_deposit)
+
+    def apply_deposit(self, event):
+        newowner1 = event['args']['depositor']
+        amount1 = event['args']['amount']
         deposit_tx = Transaction(0, 0, 0, 0, 0, 0,
                                  newowner1, amount1, b'\x00' * 20, 0, 0)
         deposit_block = Block([deposit_tx])
