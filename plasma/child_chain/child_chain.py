@@ -55,14 +55,16 @@ class ChildChain(object):
             if blknum == 0:
                 continue
 
+            transaction = self.blocks[blknum].transaction_set[txindex]
+
             if oindex == 0:
-                valid_signature = self.blocks[blknum].transaction_set[txindex].newowner1 == tx.sender1
-                spent = self.blocks[blknum].transaction_set[txindex].spent1
-                input_amount += self.blocks[blknum].transaction_set[txindex].amount1
+                valid_signature = tx.sig1 != b'\x00' * 65 and transaction.newowner1 == tx.sender1
+                spent = transaction.spent1
+                input_amount += transaction.amount1
             else:
-                valid_signature = self.blocks[blknum].transaction_set[txindex].newowner2 == tx.sender2
-                spent = self.blocks[blknum].transaction_set[txindex].spent2
-                input_amount += self.blocks[blknum].transaction_set[txindex].amount2
+                valid_signature = tx.sig2 != b'\x00' * 65 and transaction.newowner2 == tx.sender2
+                spent = transaction.spent2
+                input_amount += transaction.amount2
             assert not spent
             assert valid_signature
 
