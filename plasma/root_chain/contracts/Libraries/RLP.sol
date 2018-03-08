@@ -189,13 +189,12 @@ library RLP {
  }
 
  /// @dev Get the list of sub-items from an RLP encoded list.
- /// Warning: This is inefficient, as it requires that the list is read twice.
+ /// Warning: This requires passing in the number of items.
  /// @param self The RLP item.
  /// @return Array of RLPItems.
- function toList(RLPItem memory self) internal constant returns (RLPItem[] memory list) {
+ function toList(RLPItem memory self, uint256 numItems) internal constant returns (RLPItem[] memory list) {
      if(!isList(self))
          throw;
-     var numItems = items(self);
      list = new RLPItem[](numItems);
      var it = iterator(self);
      uint idx;
