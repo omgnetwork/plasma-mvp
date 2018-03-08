@@ -5,10 +5,17 @@ python:
 
 cache: pip
 
+env:
+  NODE_VERSION="6"
+
 install:
-  - pip install --upgrade pip setuptools
+  - nvm install $NODE_VERSION
+  - npm install --global ganache-cli
+  - wget https://github.com/ethereum/solidity/releases/download/v0.4.18/solc-static-linux && chmod +x ./solc-static-linux && sudo mv solc-static-linux /usr/bin/solc
+  - pip install --upgrade pip setuptools flake8
   - make
 
 script:
+  - (ganache-cli &) && while ! curl -s localhost:8545 >/dev/null; do sleep 1; done
   - make test
   - make lint

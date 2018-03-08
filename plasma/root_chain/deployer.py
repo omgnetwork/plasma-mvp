@@ -1,8 +1,6 @@
 import json
-import web3
 import os
 from ethereum.tools import tester as t
-from ethereum.tools import _solidity
 from solc import compile_standard
 from web3.contract import ConciseContract
 from web3 import Web3, HTTPProvider
