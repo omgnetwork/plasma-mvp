@@ -82,17 +82,14 @@ class ChildChain(object):
 
     def submit_block(self, block):
         block = rlp.decode(utils.decode_hex(block), Block)
-        assert block.sender == self.authority
+        valid_signature = block.sig != b'\x00' * 65 and block.sender == self.authority
+        assert valid_signature
 
-        for tx in block.transaction_set:
-            # TODO: should also check amount and spent, but utxo has been marked as spent before
-            self.valid_signatures(tx, tx.blknum1, tx.txindex1, tx.oindex1)
-            self.valid_signatures(tx, tx.blknum2, tx.txindex2, tx.oindex2)
+        self.root_chain.transact({'from': '0x' + self.authority.hex()}).submitBlock(block.merkilize_transaction_set, self.current_block_number)
+        # TODO: iterate through block and validate transactions
         self.blocks[self.current_block_number] = self.current_block
         self.current_block_number += 1
         self.current_block = Block()
-
-        self.root_chain.transact({'from': '0x' + self.authority.hex()}).submitBlock(block.merkilize_transaction_set)
 
     def get_transaction(self, blknum, txindex):
         return rlp.encode(self.blocks[blknum].transaction_set[txindex]).hex()

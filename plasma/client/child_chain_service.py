@@ -21,9 +21,6 @@ class ChildChainService(object):
         response = requests.post(self.url, json=payload).json()
         return response["result"]
 
-    def submit_deposit(self, tx_hash):
-        return self.send_request("submit_deposit", [tx_hash])
-
     def apply_transaction(self, transaction):
         return self.send_request("apply_transaction", [rlp.encode(transaction, Transaction).hex()])
 
