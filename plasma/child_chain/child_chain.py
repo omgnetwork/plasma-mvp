@@ -35,16 +35,9 @@ class ChildChain(object):
 
     def apply_transaction(self, transaction):
         tx = rlp.decode(utils.decode_hex(transaction), Transaction)
-        # Check for valid inputs and get input amounts
-        amount1 = self.valid_input_tx(tx.blknum1, tx.txindex1, tx.oindex1)
-        amount2 = self.valid_input_tx(tx.blknum2, tx.txindex2, tx.oindex2)
 
-        # Check that input and output values are equal
-        assert amount1 + amount2 == tx.amount1 + tx.amount2 + tx.fee
-
-        # Check that signatures are valid
-        self.valid_signatures(tx, tx.blknum1, tx.txindex1, tx.oindex1)
-        self.valid_signatures(tx, tx.blknum2, tx.txindex2, tx.oindex2)
+        # Validate the transaction
+        self.validate_tx(tx)
 
         # Mark the inputs as spent
         self.mark_utxo_spent(tx.blknum1, tx.txindex1, tx.oindex1)
@@ -52,27 +45,28 @@ class ChildChain(object):
 
         self.current_block.transaction_set.append(tx)
 
-    def valid_signatures(self, tx, blknum, txindex, oindex):
-        if blknum == 0:
-            return
+    def validate_tx(self, tx):
+        inputs = [(tx.blknum1, tx.txindex1, tx.oindex1), (tx.blknum2, tx.txindex2, tx.oindex2)]
 
-        if oindex == 0:
-            valid = self.blocks[blknum].transaction_set[txindex].newowner1 == tx.sender1
-        else:
-            valid = self.blocks[blknum].transaction_set[txindex].newowner2 == tx.sender2
-        assert valid is True
+        output_amount = tx.amount1 + tx.amount2 + tx.fee
+        input_amount = 0
 
-    def valid_input_tx(self, blknum, txindex, oindex):
-        if blknum == 0:
-            return 0
-        if oindex == 0:
-            spent = self.blocks[blknum].transaction_set[txindex].spent1
-            amount = self.blocks[blknum].transaction_set[txindex].amount1
-        else:
-            spent = self.blocks[blknum].transaction_set[txindex].spent2
-            amount = self.blocks[blknum].transaction_set[txindex].amount2
-        assert spent is False
-        return amount
+        for (blknum, txindex, oindex) in inputs:
+            if blknum == 0:
+                continue
+
+            if oindex == 0:
+                valid_signature = self.blocks[blknum].transaction_set[txindex].newowner1 == tx.sender1
+                spent = self.blocks[blknum].transaction_set[txindex].spent1
+                input_amount += self.blocks[blknum].transaction_set[txindex].amount1
+            else:
+                valid_signature = self.blocks[blknum].transaction_set[txindex].newowner2 == tx.sender2
+                spent = self.blocks[blknum].transaction_set[txindex].spent2
+                input_amount += self.blocks[blknum].transaction_set[txindex].amount2
+            assert not spent
+            assert valid_signature
+
+        assert input_amount == output_amount
 
     def mark_utxo_spent(self, blknum, txindex, oindex):
         if blknum == 0:
