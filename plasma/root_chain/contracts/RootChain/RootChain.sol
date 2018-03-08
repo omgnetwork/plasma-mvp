@@ -34,7 +34,8 @@ contract RootChain {
     mapping(uint256 => uint256) public exitIds;
     PriorityQueue exitsQueue;
     address public authority;
-    uint256 public currentChildBlock;
+    uint256 public currentChildBlock; /* ends with 000 */
+    uint256 public currentDepositBlock; /* takes values in range 1..999 */
     uint256 public recentBlock;
     uint256 public weekOldBlock;
 
@@ -59,34 +60,57 @@ contract RootChain {
 
     modifier incrementOldBlocks() {
         while (childChain[weekOldBlock].created_at < block.timestamp.sub(1 weeks)) {
-            if (childChain[weekOldBlock].created_at == 0) 
-                break;
-            weekOldBlock = weekOldBlock.add(1);
+            if (childChain[weekOldBlock].created_at == 0) {
+                if (childChain[nextWeekOldChildBlock(weekOldBlock)].created_at == 0)
+                    break;
+                else {
+                    weekOldBlock = nextWeekOldChildBlock(weekOldBlock);
+                }
+            }
+            else weekOldBlock = weekOldBlock.add(1);
         }
         _;
+    }
+
+    function nextWeekOldChildBlock(uint256 value)
+        public
+        view
+        returns (uint256)
+    {
+        return value.div(1000).add(1).mul(1000);
+    }
+
+    function getDepositBlock()
+        public
+        view
+        returns (uint256)
+    {
+        return currentChildBlock.sub(1000).add(currentDepositBlock);
     }
 
     function RootChain()
         public
     {
         authority = msg.sender;
-        currentChildBlock = 1;
+        currentChildBlock = 1000;
+        currentDepositBlock = 1;
+        weekOldBlock = 1;
         exitsQueue = new PriorityQueue();
     }
 
     // @dev Allows Plasma chain operator to submit block root
     // @param root The root of a child chain block
-    function submitBlock(bytes32 root, uint256 blknum)
+    function submitBlock(bytes32 root)
         public
         isAuthority
         incrementOldBlocks
     {
-        require(blknum == currentChildBlock);
         childChain[currentChildBlock] = childBlock({
             root: root,
             created_at: block.timestamp
         });
-        currentChildBlock = currentChildBlock.add(1);
+        currentChildBlock = currentChildBlock.add(1000);
+        currentDepositBlock = 1;
     }
 
     // @dev Allows anyone to deposit funds into the Plasma chain
@@ -97,6 +121,7 @@ contract RootChain {
         public
         payable
     {
+        require(currentDepositBlock < 1000);
         var txList = txBytes.toRLPItem().toList(11);
         require(txList.length == 11);
         for (uint256 i; i < 6; i++) {
@@ -110,11 +135,11 @@ contract RootChain {
             root = keccak256(root, zeroBytes);
             zeroBytes = keccak256(zeroBytes, zeroBytes);
         }
-        childChain[currentChildBlock] = childBlock({
+        childChain[getDepositBlock()] = childBlock({
             root: root,
             created_at: block.timestamp
         });
-        currentChildBlock = currentChildBlock.add(1);
+        currentDepositBlock = currentDepositBlock.add(1);
         Deposit(txList[6].toAddress(), txList[7].toUint());
     }
 
