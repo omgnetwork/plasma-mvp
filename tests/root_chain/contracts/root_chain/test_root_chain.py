@@ -13,6 +13,7 @@ def root_chain(t, get_contract):
 
 
 def testNextBlockNumber(t, root_chain):
+    assert 1000 == root_chain.childBlockInterval()
     assert 1000 == root_chain.nextWeekOldChildBlock(0)
     assert 1000 == root_chain.nextWeekOldChildBlock(55)
     assert 2000 == root_chain.nextWeekOldChildBlock(1000)

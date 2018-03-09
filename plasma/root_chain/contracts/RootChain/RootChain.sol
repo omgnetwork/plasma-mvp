@@ -44,6 +44,7 @@ contract RootChain {
     uint256 public currentDepositBlock; /* takes values in range 1..999 */
     uint256 public recentBlock;
     uint256 public weekOldBlock;
+    uint256 public childBlockInterval;
 
     struct exit {
         address owner;
@@ -83,7 +84,7 @@ contract RootChain {
         view
         returns (uint256)
     {
-        return value.div(1000).add(1).mul(1000);
+        return value.div(childBlockInterval).add(1).mul(childBlockInterval);
     }
 
     function getDepositBlock()
@@ -91,14 +92,15 @@ contract RootChain {
         view
         returns (uint256)
     {
-        return currentChildBlock.sub(1000).add(currentDepositBlock);
+        return currentChildBlock.sub(childBlockInterval).add(currentDepositBlock);
     }
 
     function RootChain()
         public
     {
         authority = msg.sender;
-        currentChildBlock = 1000;
+        childBlockInterval = 1000;
+        currentChildBlock = childBlockInterval;
         currentDepositBlock = 1;
         weekOldBlock = 1;
         exitsQueue = new PriorityQueue();
@@ -115,7 +117,7 @@ contract RootChain {
             root: root,
             created_at: block.timestamp
         });
-        currentChildBlock = currentChildBlock.add(1000);
+        currentChildBlock = currentChildBlock.add(childBlockInterval);
         currentDepositBlock = 1;
     }
 
@@ -127,7 +129,7 @@ contract RootChain {
         public
         payable
     {
-        require(currentDepositBlock < 1000);
+        require(currentDepositBlock < childBlockInterval);
         var txList = txBytes.toRLPItem().toList(11);
         require(txList.length == 11);
         for (uint256 i; i < 6; i++) {
