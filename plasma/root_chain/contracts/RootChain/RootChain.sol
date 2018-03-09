@@ -34,6 +34,12 @@ contract RootChain {
     mapping(uint256 => uint256) public exitIds;
     PriorityQueue exitsQueue;
     address public authority;
+    /* Block numbering scheme below is needed to prevent Ethereum reorg from invalidating blocks submitted
+       by operator. Two mechanisms must be in place to prevent chain from crashing:
+       1) don't mine tx that spent fresh deposits; if they are reorged from existence, block is invalid
+       2) disappearance of submit block does not affect operator's block numbering; hence tx submitted by
+       users that address that block stay valid.
+    */
     uint256 public currentChildBlock; /* ends with 000 */
     uint256 public currentDepositBlock; /* takes values in range 1..999 */
     uint256 public recentBlock;
