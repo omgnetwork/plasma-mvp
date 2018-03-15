@@ -1,19 +1,14 @@
 import rlp
 import json
-from plasma.config import plasma_config
 from ethereum import utils
 from .block import Block
 from .transaction import Transaction
-from plasma.root_chain.deployer import Deployer
-from web3 import HTTPProvider
 
 
 class ChildChain(object):
 
-    def __init__(self, authority, root_chain_provider=HTTPProvider('http://localhost:8545'), child_chain_url="http://localhost:8546/jsonrpc"):
-        deployer = Deployer(root_chain_provider)
-        abi = json.load(open("contract_data/RootChain.json"))
-        self.root_chain = deployer.w3.eth.contract(abi, plasma_config['ROOT_CHAIN_CONTRACT_ADDRESS'])
+    def __init__(self, authority, root_chain):
+        self.root_chain = root_chain
         self.authority = authority
         self.blocks = {}
         self.current_block_number = 1

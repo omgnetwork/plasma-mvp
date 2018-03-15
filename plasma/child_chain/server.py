@@ -3,9 +3,10 @@ from werkzeug.serving import run_simple
 from jsonrpc import JSONRPCResponseManager, dispatcher
 from plasma.child_chain.child_chain import ChildChain
 from plasma.config import plasma_config
+from plasma.root_chain.deployer import Deployer
 
 
-child_chain = ChildChain(plasma_config['AUTHORITY'])
+child_chain = ChildChain(plasma_config['AUTHORITY'], Deployer().get_contract("RootChain/RootChain.sol"))
 
 
 @Request.application

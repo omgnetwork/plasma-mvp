@@ -1,6 +1,6 @@
 import rlp
 import pytest
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch, Mock
 from ethereum import utils as u
 from plasma.child_chain.transaction import Transaction
 from plasma.child_chain.block import Block
@@ -18,14 +18,7 @@ amount2 = 400
 
 @pytest.fixture
 def child_chain():
-    with patch('plasma.child_chain.child_chain.ChildChain.__init__', return_value=None) as child_chain:
-        child_chain = ChildChain(None, None, None)
-        child_chain.root_chain = MagicMock()
-        child_chain.authority = AUTHORITY
-        child_chain.blocks = {}
-        child_chain.current_block_number = 1
-        child_chain.current_block = Block()
-        child_chain.pending_transactions = []
+    child_chain = ChildChain(AUTHORITY, Mock())
 
     # Create some valid transations
     tx1 = Transaction(0, 0, 0, 0, 0, 0, newowner1, amount1, b'\x00' * 20, 0, 0)
