@@ -1,5 +1,4 @@
 import rlp
-import json
 from ethereum import utils
 from .block import Block
 from .transaction import Transaction
@@ -77,10 +76,12 @@ class ChildChain(object):
 
     def submit_block(self, block):
         block = rlp.decode(utils.decode_hex(block), Block)
+        assert block.merkilize_transaction_set == self.current_block.merkilize_transaction_set
+
         valid_signature = block.sig != b'\x00' * 65 and block.sender == self.authority
         assert valid_signature
 
-        self.root_chain.transact({'from': '0x' + self.authority.hex()}).submitBlock(block.merkilize_transaction_set, self.current_block_number)
+        self.root_chain.transact({'from': '0x' + self.authority.hex()}).submitBlock(block.merkle.root, self.current_block_number)
         # TODO: iterate through block and validate transactions
         self.blocks[self.current_block_number] = self.current_block
         self.current_block_number += 1

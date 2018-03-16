@@ -1,6 +1,6 @@
 import rlp
 import pytest
-from unittest.mock import patch, Mock
+from unittest.mock import Mock
 from ethereum import utils as u
 from plasma.child_chain.transaction import Transaction
 from plasma.child_chain.block import Block
@@ -95,6 +95,21 @@ def test_submit_block_invalid_sig(child_chain):
     block = child_chain.current_block
     block.make_mutable()
     block.sign(invalid_block_key)
+    block = rlp.encode(block).hex()
+
+    with pytest.raises(AssertionError):
+        child_chain.submit_block(block)
+
+
+def test_submit_block_invalid_tx_set(child_chain):
+    block = Block()
+    block.transaction_set = child_chain.current_block.transaction_set[:]
+    unsubmitted_tx = Transaction(0, 0, 0, 0, 0, 0, newowner1, 1234, b'\x00' * 20, 0, 0)
+    # Add an arbitrary transaction that hasn't been correctly submitted
+    block.transaction_set.append(unsubmitted_tx)
+
+    block.make_mutable()
+    block.sign(block_key)
     block = rlp.encode(block).hex()
 
     with pytest.raises(AssertionError):
