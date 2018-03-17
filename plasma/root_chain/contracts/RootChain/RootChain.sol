@@ -136,8 +136,7 @@ contract RootChain {
         require(msg.sender == txList[6 + 2 * oindex].toAddress());
         bytes32 txHash = keccak256(txBytes);
         bytes32 merkleHash = keccak256(txHash, ByteUtils.slice(sigs, 0, 130));
-        uint256 inputCount = txList[3].toUint() * 1000000000 + txList[0].toUint();
-        require(Validate.checkSigs(txHash, root, inputCount, sigs));
+        require(Validate.checkSigs(txHash, root, txList[0].toUint(), txList[3].toUint(), sigs));
         require(merkleHash.checkMembership(txindex, root, proof));
 
         // Priority is a given utxos position in the exit priority queue
