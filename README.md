@@ -32,7 +32,44 @@ Plasma MVP is split into four main parts: `root_chain`, `child_chain`, `client`,
 
 This project has a few pre-installation dependencies.
 
+- [LevelDB](https://github.com/google/leveldb)
+
+Mac:
+```
+$ brew install leveldb
+```
+
+Linux:
+
+LevelDB should be installed along with `plyvel` once you make the project later on.
+
+Windows:
+
+First, install [vcpkg](https://github.com/Microsoft/vcpkg). Then,
+
+```
+> vcpkg install leveldb
+```
+
 - [Solidity 0.4.18](https://github.com/ethereum/solidity/releases/tag/v0.4.18)
+
+Mac:
+```
+$ brew unlink solidity
+$ brew install https://raw.githubusercontent.com/ethereum/homebrew-ethereum/2aea171d7d6901b97d5f1f71bd07dd88ed5dfb42/solidity.rb
+```
+
+Linux:
+```
+$ wget https://github.com/ethereum/solidity/releases/download/v0.4.18/solc-static-linux
+$ chmod +x ./solc-static-linux
+$ sudo mv solc-static-linux /usr/bin/solc
+```
+
+Windows:
+
+Follow [this guide](https://solidity.readthedocs.io/en/v0.4.21/installing-solidity.html#prerequisites-windows).
+
 - [Python 3.2+](https://www.python.org/downloads/)
 
 It's also recommended to run [`ganache-cli`](https://github.com/trufflesuite/ganache-cli) when developing, testing, or playing around. This will allow you to receive near instant feedback.
@@ -182,22 +219,24 @@ sync
 
 Let's play around a bit:
 
-1. We'll start by depositing:
+1. Start the server and CLI up as per [Starting Plasma](#starting-plasma).
+
+2. We'll start by depositing:
 ```
 deposit 100 3bb369fecdc16b93b99514d8ed9c2e87c5824cf4a6a98d2e8e91b7dd0c063304
 ```
 
-2. Then we'll send a tx:
+3. Then we'll send a tx:
 ```
 send_tx 1 0 0 0 0 0 0xfd02ecee62797e75d86bcff1642eb0844afb28c7 50 0x4b3ec6c9dc67079e82152d6d55d8dd96a8e6aa26 45 5 3bb369fecdc16b93b99514d8ed9c2e87c5824cf4a6a98d2e8e91b7dd0c063304
 ```
 
-3.  Next we'll submit the block:
+4.  Next we'll submit the block:
 ```
 submit_block 3bb369fecdc16b93b99514d8ed9c2e87c5824cf4a6a98d2e8e91b7dd0c063304
 ```
 
-4. Now we'll withdraw our original deposit (this is a double spend!):
+5. Now we'll withdraw our original deposit (this is a double spend!):
 
 ```
 withdraw 1 0 0 3bb369fecdc16b93b99514d8ed9c2e87c5824cf4a6a98d2e8e91b7dd0c063304
@@ -205,9 +244,9 @@ withdraw 1 0 0 3bb369fecdc16b93b99514d8ed9c2e87c5824cf4a6a98d2e8e91b7dd0c063304
 
 Note: The functionality to challenge double spends from the cli is still being worked on.
 
-5. Now we'll sync with the child chain (the deposit and the block we just submitted) locally: 
+6. Now we'll sync with the child chain (the deposit and the block we just submitted) locally: 
 ```
 sync
 ```
 
-6. And finally we'll close the client with `Ctrl+C`.
+7. And finally we'll close the client with `Ctrl+C`.
