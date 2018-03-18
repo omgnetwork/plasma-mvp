@@ -203,7 +203,7 @@ withdraw <blknum> <tx_pos> <utxo_pos> <key1> [<key2>]
 withdraw 1 0 0 3bb369fecdc16b93b99514d8ed9c2e87c5824cf4a6a98d2e8e91b7dd0c063304
 ```
 
-### `send_tx`
+### `sync`
 
 #### Description
 
