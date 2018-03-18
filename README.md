@@ -111,7 +111,7 @@ The fastest way to start playing with our Plasma MVP is by starting up `ganache-
 ```bash
 $ ganache-cli -m=plasma_mvp # Start ganache-cli
 $ make root-chain           # Deploy the root chain contract
-$ make child-chain          # Run our child chain and server in the background
+$ make child-chain          # Run our child chain and server
 $ omg start                 # Start the Plasma CLI
 ```
 
