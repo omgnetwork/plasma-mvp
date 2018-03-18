@@ -1,15 +1,22 @@
-from .node import Node
 from ethereum.utils import sha3
+
+from .exceptions import MemberNotExistException
+from .node import Node
 
 
 class FixedMerkle(object):
 
     def __init__(self, depth, leaves=[], hashed=False):
+        if depth < 1:
+            raise ValueError('depth should be at least 1')
+
         self.depth = depth
         self.leaf_count = 2 ** depth
         self.hashed = hashed
-        assert len(leaves) <= self.leaf_count
-        assert self.leaf_count % 2 == 0
+
+        if len(leaves) > self.leaf_count:
+            raise ValueError('num of leaves exceed max avaiable num with the depth')
+
         if not hashed:
             leaves = [sha3(leaf) for leaf in leaves]
         self.leaves = leaves + [b'\x00' * 32] * (self.leaf_count - len(leaves))
@@ -48,7 +55,9 @@ class FixedMerkle(object):
     def create_membership_proof(self, leaf):
         if not self.hashed:
             leaf = sha3(leaf)
-        assert self.is_member(leaf)
+        if not self.is_member(leaf):
+            raise MemberNotExistException('leaf is not in the merkle tree')
+
         index = self.leaves.index(leaf)
         proof = b''
         for i in range(0, self.depth, 1):

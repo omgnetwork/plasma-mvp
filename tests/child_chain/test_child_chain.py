@@ -1,10 +1,15 @@
-import rlp
-import pytest
 from unittest.mock import Mock
+
+import pytest
+import rlp
 from ethereum import utils as u
-from plasma.child_chain.transaction import Transaction
 from plasma.child_chain.block import Block
 from plasma.child_chain.child_chain import ChildChain
+from plasma.child_chain.exceptions import (InvalidBlockMerkleException,
+                                           InvalidBlockSignatureException,
+                                           InvalidTxSignatureException,
+                                           TxAlreadySpentException)
+from plasma.child_chain.transaction import Transaction
 
 AUTHORITY = b'\xfd\x02\xec\xeeby~u\xd8k\xcf\xf1d.\xb0\x84J\xfb(\xc7'
 tx_key = u.normalize_key(b'8b76243a95f959bf101248474e6bdacdedc8ad995d287c24616a41bd51642965')
@@ -43,7 +48,7 @@ def test_send_tx_with_sig(child_chain):
 def test_send_tx_no_sig(child_chain):
     tx3 = Transaction(1, 0, 0, 1, 1, 0, newowner1, amount2, b'\x00' * 20, 0, 0)
 
-    with pytest.raises(AssertionError):
+    with pytest.raises(InvalidTxSignatureException):
         child_chain.apply_transaction(rlp.encode(tx3).hex())
 
 
@@ -54,7 +59,7 @@ def test_send_tx_invalid_sig(child_chain):
     tx3.sign1(invalid_tx_key)
     tx3.sign2(invalid_tx_key)
 
-    with pytest.raises(AssertionError):
+    with pytest.raises(InvalidTxSignatureException):
         child_chain.apply_transaction(rlp.encode(tx3).hex())
 
 
@@ -68,7 +73,7 @@ def test_send_tx_double_spend(child_chain):
     child_chain.apply_transaction(rlp.encode(tx3).hex())
 
     # Try to submit again
-    with pytest.raises(AssertionError):
+    with pytest.raises(TxAlreadySpentException):
         child_chain.apply_transaction(rlp.encode(tx3).hex())
 
 
@@ -87,7 +92,7 @@ def test_submit_block_no_sig(child_chain):
     block = child_chain.current_block
     block = rlp.encode(block).hex()
 
-    with pytest.raises(AssertionError):
+    with pytest.raises(InvalidBlockSignatureException):
         child_chain.submit_block(block)
 
 
@@ -97,7 +102,7 @@ def test_submit_block_invalid_sig(child_chain):
     block.sign(invalid_block_key)
     block = rlp.encode(block).hex()
 
-    with pytest.raises(AssertionError):
+    with pytest.raises(InvalidBlockSignatureException):
         child_chain.submit_block(block)
 
 
@@ -112,7 +117,7 @@ def test_submit_block_invalid_tx_set(child_chain):
     block.sign(block_key)
     block = rlp.encode(block).hex()
 
-    with pytest.raises(AssertionError):
+    with pytest.raises(InvalidBlockMerkleException):
         child_chain.submit_block(block)
 
 
