@@ -52,7 +52,8 @@ class ChildChain(object):
         input_amount = 0
 
         for (blknum, txindex, oindex) in inputs:
-            if blknum == 0:
+            # Assume empty inputs and deposits are valid
+            if blknum == 0 or blknum % 1000 != 0:
                 continue
 
             transaction = self.blocks[blknum].transaction_set[txindex]
