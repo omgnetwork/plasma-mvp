@@ -35,8 +35,7 @@ class Client(object):
         return transaction
 
     def deposit(self, transaction, key):
-        tx_hash = self.root_chain.deposit(rlp.encode(transaction, UnsignedTransaction), transact={'from': '0x' + transaction.newowner1.hex(), 'value': transaction.amount1})
-        self.child_chain.submit_deposit(tx_hash)
+        self.root_chain.deposit(rlp.encode(transaction, UnsignedTransaction), transact={'from': '0x' + transaction.newowner1.hex(), 'value': transaction.amount1})
 
     def apply_transaction(self, transaction):
         self.child_chain.apply_transaction(transaction)

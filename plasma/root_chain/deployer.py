@@ -4,6 +4,7 @@ from ethereum.tools import tester as t
 from solc import compile_standard
 from web3.contract import ConciseContract
 from web3 import Web3, HTTPProvider
+from plasma.config import plasma_config
 
 
 OWN_DIR = os.path.dirname(os.path.realpath(__file__))
@@ -56,3 +57,8 @@ class Deployer(object):
         contract_instance = self.w3.eth.contract(abi, contract_address, ContractFactoryClass=ConciseContract)
         print("Successfully deployed {} contract!".format(contract_name))
         return contract_instance
+
+    def get_contract(self, path):
+        file_name = path.split('/')[1]
+        abi = json.load(open('contract_data/%s.json' % (file_name.split('.')[0])))
+        return self.w3.eth.contract(abi, plasma_config['ROOT_CHAIN_CONTRACT_ADDRESS'])
