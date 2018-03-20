@@ -2,7 +2,7 @@ import pytest
 import rlp
 from plasma.child_chain.transaction import Transaction, UnsignedTransaction
 from plasma.utils.merkle.fixed_merkle import FixedMerkle
-from plasma.utils.utils import get_merkle_of_leaves, confirm_tx
+from plasma.utils.utils import get_merkle_of_leaves, confirm_tx, get_deposit_hash
 
 
 @pytest.fixture
@@ -20,15 +20,11 @@ def testNextBlockNumber(t, root_chain):
     assert 2000 == root_chain.nextWeekOldChildBlock(1001)
 
 
-def test_deposit(t, root_chain):
-    owner, value_1 = t.a1, 100
-    null_address = b'\x00' * 20
-    tx = Transaction(0, 0, 0, 0, 0, 0,
-                     owner, value_1, null_address, 0, 0)
-    tx_bytes = rlp.encode(tx, UnsignedTransaction)
+def test_deposit(t, u, root_chain):
+    owner, value_1 = t.a0, 100
     blknum = root_chain.getDepositBlock()
-    root_chain.deposit(tx_bytes, value=value_1)
-    assert root_chain.getChildChain(blknum)[0] == get_merkle_of_leaves(16, [tx.hash + tx.sig1 + tx.sig2]).root
+    root_chain.deposit(value=value_1)
+    assert root_chain.getChildChain(blknum)[0] == get_merkle_of_leaves(16, [owner + b'\x00' * 31 + u.int_to_bytes(value_1)]).root
     assert root_chain.getChildChain(blknum)[1] == t.chain.head_state.timestamp
 
 
@@ -38,24 +34,24 @@ def test_start_exit(t, root_chain, assert_tx_failed):
     null_address = b'\x00' * 20
     tx1 = Transaction(0, 0, 0, 0, 0, 0,
                       owner, value_1, null_address, 0, 0)
-    tx_bytes1 = rlp.encode(tx1, UnsignedTransaction)
+    deposit_tx_hash = get_deposit_hash(owner, value_1)
     dep_blknum = root_chain.getDepositBlock()
     assert dep_blknum == 1
-    root_chain.deposit(tx_bytes1, value=value_1)
-    merkle = FixedMerkle(16, [tx1.merkle_hash], True)
-    proof = merkle.create_membership_proof(tx1.merkle_hash)
+    root_chain.deposit(value=value_1, sender=key)
+    merkle = FixedMerkle(16, [deposit_tx_hash], True)
+    proof = merkle.create_membership_proof(deposit_tx_hash)
     confirmSig1 = confirm_tx(tx1, root_chain.getChildChain(dep_blknum)[0], key)
     priority1 = dep_blknum * 1000000000 + 10000 * 0 + 0
     snapshot = t.chain.snapshot()
     sigs = tx1.sig1 + tx1.sig2 + confirmSig1
     utxoId = dep_blknum * 1000000000 + 10000 * 0 + 0
     # Deposit exit
-    root_chain.startExit(utxoId, tx_bytes1, proof, sigs, sender=key)
+    root_chain.startDepositExit(utxoId, tx1.amount1, proof, sender=key)
 
     t.chain.head_state.timestamp += week_and_a_half
     # Cannot exit twice off of the same utxo
     exitId1 = dep_blknum * 1000000000 + 10000 * 0 + 0
-    assert_tx_failed(lambda: root_chain.startExit(exitId1, tx_bytes1, proof, sigs, sender=key))
+    assert_tx_failed(lambda: root_chain.startExit(exitId1, deposit_tx_hash, proof, sigs, sender=key))
     assert root_chain.getExit(priority1) == ['0x' + owner.hex(), 100, exitId1]
     t.chain.revert(snapshot)
 
@@ -79,7 +75,7 @@ def test_start_exit(t, root_chain, assert_tx_failed):
     t.chain.revert(snapshot)
     dep2_blknum = root_chain.getDepositBlock()
     assert dep2_blknum == 1001
-    root_chain.deposit(tx_bytes1, value=value_1)
+    root_chain.deposit(value=value_1, sender=key)
     tx3 = Transaction(child_blknum, 0, 0, dep2_blknum, 0, 0,
                       owner, value_1, null_address, 0, 0)
     tx3.sign1(key)
@@ -105,15 +101,15 @@ def test_challenge_exit(t, u, root_chain):
     null_address = b'\x00' * 20
     tx1 = Transaction(0, 0, 0, 0, 0, 0,
                       owner, value_1, null_address, 0, 0)
-    tx_bytes1 = rlp.encode(tx1, UnsignedTransaction)
+    deposit_tx_hash = get_deposit_hash(owner, value_1)
     dep1_blknum = root_chain.getDepositBlock()
-    root_chain.deposit(tx_bytes1, value=value_1)
-    merkle = FixedMerkle(16, [tx1.merkle_hash], True)
-    proof = merkle.create_membership_proof(tx1.merkle_hash)
+    root_chain.deposit(value=value_1, sender=key)
+    merkle = FixedMerkle(16, [deposit_tx_hash], True)
+    proof = merkle.create_membership_proof(deposit_tx_hash)
     confirmSig1 = confirm_tx(tx1, root_chain.getChildChain(dep1_blknum)[0], key)
     sigs = tx1.sig1 + tx1.sig2 + confirmSig1
     exitId1 = dep1_blknum * 1000000000 + 10000 * 0 + 0
-    root_chain.startExit(exitId1, tx_bytes1, proof, sigs, sender=key)
+    root_chain.startDepositExit(exitId1, tx1.amount1, proof, sender=key)
     tx2 = Transaction(dep1_blknum, 0, 0, 0, 0, 0,
                       owner, value_1, null_address, 0, 0)
     tx2.sign1(key)
@@ -138,15 +134,13 @@ def test_finalize_exits(t, u, root_chain):
     null_address = b'\x00' * 20
     tx1 = Transaction(0, 0, 0, 0, 0, 0,
                       owner, value_1, null_address, 0, 0)
-    tx_bytes1 = rlp.encode(tx1, UnsignedTransaction)
+    deposit_tx_hash = get_deposit_hash(owner, value_1)
     dep1_blknum = root_chain.getDepositBlock()
-    root_chain.deposit(tx_bytes1, value=value_1)
-    merkle = FixedMerkle(16, [tx1.merkle_hash], True)
-    proof = merkle.create_membership_proof(tx1.merkle_hash)
-    confirmSig1 = confirm_tx(tx1, root_chain.getChildChain(dep1_blknum)[0], key)
-    sigs = tx1.sig1 + tx1.sig2 + confirmSig1
+    root_chain.deposit(value=value_1, sender=key)
+    merkle = FixedMerkle(16, [deposit_tx_hash], True)
+    proof = merkle.create_membership_proof(deposit_tx_hash)
     exitId1 = dep1_blknum * 1000000000 + 10000 * 0 + 0
-    root_chain.startExit(exitId1, tx_bytes1, proof, sigs, sender=key)
+    root_chain.startDepositExit(exitId1, tx1.amount1, proof, sender=key)
     t.chain.head_state.timestamp += two_weeks * 2
     assert root_chain.exits(exitId1) == ['0x' + owner.hex(), 100, exitId1]
     assert root_chain.exitIds(exitId1) == exitId1
