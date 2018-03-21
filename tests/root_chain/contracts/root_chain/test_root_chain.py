@@ -50,9 +50,9 @@ def test_start_exit(t, root_chain, assert_tx_failed):
 
     t.chain.head_state.timestamp += week_and_a_half
     # Cannot exit twice off of the same utxo
-    exitId1 = dep_blknum * 1000000000 + 10000 * 0 + 0
-    assert_tx_failed(lambda: root_chain.startExit(exitId1, deposit_tx_hash, proof, sigs, sender=key))
-    assert root_chain.getExit(priority1) == ['0x' + owner.hex(), 100, exitId1]
+    utxoPos1 = dep_blknum * 1000000000 + 10000 * 0 + 0
+    assert_tx_failed(lambda: root_chain.startExit(utxoPos1, deposit_tx_hash, proof, sigs, sender=key))
+    assert root_chain.getExit(priority1) == ['0x' + owner.hex(), 100]
     t.chain.revert(snapshot)
 
     tx2 = Transaction(dep_blknum, 0, 0, 0, 0, 0,
@@ -69,9 +69,9 @@ def test_start_exit(t, root_chain, assert_tx_failed):
     sigs = tx2.sig1 + tx2.sig2 + confirmSig1
     snapshot = t.chain.snapshot()
     # # Single input exit
-    exitId2 = child_blknum * 1000000000 + 10000 * 0 + 0
-    root_chain.startExit(exitId2, tx_bytes2, proof, sigs, sender=key)
-    assert root_chain.getExit(priority2) == ['0x' + owner.hex(), 100, exitId2]
+    utxoPos2 = child_blknum * 1000000000 + 10000 * 0 + 0
+    root_chain.startExit(utxoPos2, tx_bytes2, proof, sigs, sender=key)
+    assert root_chain.getExit(priority2) == ['0x' + owner.hex(), 100]
     t.chain.revert(snapshot)
     dep2_blknum = root_chain.getDepositBlock()
     assert dep2_blknum == 1001
@@ -91,9 +91,9 @@ def test_start_exit(t, root_chain, assert_tx_failed):
     priority3 = child2_blknum * 1000000000 + 10000 * 0 + 0
     sigs = tx3.sig1 + tx3.sig2 + confirmSig1 + confirmSig2
     # Double input exit
-    exitId3 = child2_blknum * 1000000000 + 10000 * 0 + 0
-    root_chain.startExit(exitId3, tx_bytes3, proof, sigs, sender=key)
-    assert root_chain.getExit(priority3) == ['0x' + owner.hex(), 100, exitId3]
+    utxoPos3 = child2_blknum * 1000000000 + 10000 * 0 + 0
+    root_chain.startExit(utxoPos3, tx_bytes3, proof, sigs, sender=key)
+    assert root_chain.getExit(priority3) == ['0x' + owner.hex(), 100]
 
 
 def test_challenge_exit(t, u, root_chain):
@@ -108,8 +108,8 @@ def test_challenge_exit(t, u, root_chain):
     proof = merkle.create_membership_proof(deposit_tx_hash)
     confirmSig1 = confirm_tx(tx1, root_chain.getChildChain(dep1_blknum)[0], key)
     sigs = tx1.sig1 + tx1.sig2 + confirmSig1
-    exitId1 = dep1_blknum * 1000000000 + 10000 * 0 + 0
-    root_chain.startDepositExit(exitId1, tx1.amount1, proof, sender=key)
+    utxoPos1 = dep1_blknum * 1000000000 + 10000 * 0 + 0
+    root_chain.startDepositExit(utxoPos1, tx1.amount1, proof, sender=key)
     tx2 = Transaction(dep1_blknum, 0, 0, 0, 0, 0,
                       owner, value_1, null_address, 0, 0)
     tx2.sign1(key)
@@ -120,12 +120,10 @@ def test_challenge_exit(t, u, root_chain):
     root_chain.submitBlock(merkle.root)
     confirmSig = confirm_tx(tx2, root_chain.getChildChain(child_blknum)[0], key)
     sigs = tx2.sig1 + tx2.sig2
-    exitId2 = child_blknum * 1000000000 + 10000 * 0 + 0
-    assert root_chain.exits(exitId1) == ['0x' + owner.hex(), 100, exitId1]
-    assert root_chain.exitIds(exitId1) == exitId1
-    root_chain.challengeExit(exitId2, exitId1, tx_bytes2, proof, sigs, confirmSig)
-    assert root_chain.exits(exitId1) == ['0x0000000000000000000000000000000000000000', 0, 0]
-    assert root_chain.exitIds(exitId1) == 0
+    utxoPos2 = child_blknum * 1000000000 + 10000 * 0 + 0
+    assert root_chain.exits(utxoPos1) == ['0x' + owner.hex(), 100]
+    root_chain.challengeExit(utxoPos2, utxoPos1, tx_bytes2, proof, sigs, confirmSig)
+    assert root_chain.exits(utxoPos1) == ['0x0000000000000000000000000000000000000000', value_1]
 
 
 def test_finalize_exits(t, u, root_chain):
@@ -139,14 +137,12 @@ def test_finalize_exits(t, u, root_chain):
     root_chain.deposit(value=value_1, sender=key)
     merkle = FixedMerkle(16, [deposit_tx_hash], True)
     proof = merkle.create_membership_proof(deposit_tx_hash)
-    exitId1 = dep1_blknum * 1000000000 + 10000 * 0 + 0
-    root_chain.startDepositExit(exitId1, tx1.amount1, proof, sender=key)
+    utxoPos1 = dep1_blknum * 1000000000 + 10000 * 0 + 0 * 10000000
+    root_chain.startDepositExit(utxoPos1, tx1.amount1, proof, sender=key)
     t.chain.head_state.timestamp += two_weeks * 2
-    assert root_chain.exits(exitId1) == ['0x' + owner.hex(), 100, exitId1]
-    assert root_chain.exitIds(exitId1) == exitId1
+    assert root_chain.exits(utxoPos1) == ['0x' + owner.hex(), 100]
     pre_balance = t.chain.head_state.get_balance(owner)
     root_chain.finalizeExits(sender=t.k2)
     post_balance = t.chain.head_state.get_balance(owner)
     assert post_balance == pre_balance + value_1
-    assert root_chain.exits(exitId1) == ['0x0000000000000000000000000000000000000000', 0, 0]
-    assert root_chain.exitIds(exitId1) == 0
+    assert root_chain.exits(utxoPos1) == ['0x0000000000000000000000000000000000000000', value_1]

@@ -29,7 +29,6 @@ contract RootChain {
      */
     mapping(uint256 => childBlock) public childChain;
     mapping(uint256 => exit) public exits;
-    mapping(uint256 => uint256) public exitIds;
     PriorityQueue exitsQueue;
     address public authority;
     /* Block numbering scheme below is needed to prevent Ethereum reorg from invalidating blocks submitted
@@ -46,7 +45,6 @@ contract RootChain {
     struct exit {
         address owner;
         uint256 amount;
-        uint256 utxoPos;
     }
 
     struct childBlock {
@@ -186,13 +184,12 @@ contract RootChain {
         } else {
             priority = utxoPos;
         }
-        require(exitIds[utxoPos] == 0);
-        exitIds[utxoPos] = priority;
-        exitsQueue.insert(priority);
-        exits[priority] = exit({
+        require(amount > 0);
+        require(exits[utxoPos].amount == 0);
+        exitsQueue.insert(priority << 128 | utxoPos);
+        exits[utxoPos] = exit({
             owner: exitor,
-            amount: amount,
-            utxoPos: utxoPos
+            amount: amount
         });
         Exit(exitor, utxoPos);
     }
@@ -210,16 +207,15 @@ contract RootChain {
     {
         uint256 txindex = (cUtxoPos % 1000000000) / 10000;
         bytes32 root = childChain[cUtxoPos / 1000000000].root;
-        uint256 priority = exitIds[eUtxoPos];
         var txHash = keccak256(txBytes);
         var confirmationHash = keccak256(txHash, root);
         var merkleHash = keccak256(txHash, sigs);
-        address owner = exits[priority].owner;
-
+        address owner = exits[eUtxoPos].owner;
+    
         require(owner == ECRecovery.recover(confirmationHash, confirmationSig));
         require(merkleHash.checkMembership(txindex, root, proof));
-        delete exits[priority];
-        delete exitIds[eUtxoPos];
+        delete exits[eUtxoPos].owner;
+        // Clear as much as possible from succesfull challenge
     }
 
 
@@ -231,13 +227,14 @@ contract RootChain {
         returns (uint256)
     {
         uint256 twoWeekOldTimestamp = block.timestamp.sub(2 weeks);
-        exit memory currentExit = exits[exitsQueue.getMin()];
-        uint256 blknum = currentExit.utxoPos.div(1000000000);
+        uint256 utxoPos = uint256(uint128(exitsQueue.getMin()));
+        exit memory currentExit = exits[utxoPos];
+        uint256 blknum = utxoPos.div(1000000000);
         while (childChain[blknum].created_at < twoWeekOldTimestamp && exitsQueue.currentSize() > 0) {
+            require(currentExit.owner != address(0));
             currentExit.owner.transfer(currentExit.amount);
-            uint256 priority = exitsQueue.delMin();
-            delete exits[priority];
-            delete exitIds[currentExit.utxoPos];
+            exitsQueue.delMin();
+            delete exits[utxoPos].owner;
             currentExit = exits[exitsQueue.getMin()];
         }
     }
@@ -253,11 +250,11 @@ contract RootChain {
         return (childChain[blockNumber].root, childChain[blockNumber].created_at);
     }
 
-    function getExit(uint256 priority)
+    function getExit(uint256 utxoPos)
         public
         view
-        returns (address, uint256, uint256)
+        returns (address, uint256)
     {
-        return (exits[priority].owner, exits[priority].amount, exits[priority].utxoPos);
+        return (exits[utxoPos].owner, exits[utxoPos].amount);
     }
 }
