@@ -12,14 +12,6 @@ def root_chain(t, get_contract):
     return contract
 
 
-def testNextBlockNumber(t, root_chain):
-    assert 1000 == root_chain.childBlockInterval()
-    assert 1000 == root_chain.nextWeekOldChildBlock(0)
-    assert 1000 == root_chain.nextWeekOldChildBlock(55)
-    assert 2000 == root_chain.nextWeekOldChildBlock(1000)
-    assert 2000 == root_chain.nextWeekOldChildBlock(1001)
-
-
 def test_deposit(t, u, root_chain):
     owner, value_1 = t.a0, 100
     blknum = root_chain.getDepositBlock()
