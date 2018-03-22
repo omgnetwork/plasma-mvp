@@ -26,7 +26,8 @@ class ChildChain(object):
     def apply_deposit(self, event):
         newowner1 = event['args']['depositor']
         amount1 = event['args']['amount']
-        deposit_tx = Transaction(0, 0, 0, 0, 0, 0,
+        blknum1 = event['args']['utxoPos']
+        deposit_tx = Transaction(blknum1, 0, 0, 0, 0, 0,
                                  newowner1, amount1, b'\x00' * 20, 0, 0)
         deposit_block = Block([deposit_tx])
         # Add block validation
@@ -52,8 +53,8 @@ class ChildChain(object):
         input_amount = 0
 
         for (blknum, txindex, oindex) in inputs:
-            # Assume empty inputs and deposits are valid
-            if blknum == 0 or blknum % 1000 != 0:
+            # Assume empty inputs and are valid
+            if blknum == 0:
                 continue
 
             transaction = self.blocks[blknum].transaction_set[txindex]
