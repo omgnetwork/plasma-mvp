@@ -203,15 +203,16 @@ contract RootChain {
         returns (uint256)
     {
         uint256 twoWeekOldTimestamp = block.timestamp.sub(2 weeks);
-        uint256 utxoPos = uint256(uint128(exitsQueue.getMin()));
+        uint256 utxoPos;
+        uint256 created_at;
+        (utxoPos, created_at) = getNextExit();
         exit memory currentExit = exits[utxoPos];
-        uint256 blknum = utxoPos.div(1000000000);
-        while (childChain[blknum].created_at < twoWeekOldTimestamp && exitsQueue.currentSize() > 0) {
-            require(currentExit.owner != address(0));
+        while (created_at < twoWeekOldTimestamp && exitsQueue.currentSize() > 0) {
+            currentExit = exits[utxoPos];
             currentExit.owner.transfer(currentExit.amount);
             exitsQueue.delMin();
             delete exits[utxoPos].owner;
-            currentExit = exits[exitsQueue.getMin()];
+            (utxoPos, created_at) = getNextExit();
         }
     }
 
@@ -232,5 +233,15 @@ contract RootChain {
         returns (address, uint256)
     {
         return (exits[utxoPos].owner, exits[utxoPos].amount);
+    }
+
+    function getNextExit()
+        view
+        returns (uint256, uint256)
+    {
+        uint256 priority = exitsQueue.getMin();
+        uint256 utxoPos = uint256(uint128(priority));
+        uint256 created_at = (priority - utxoPos) >> 128;
+        return (utxoPos, created_at);
     }
 }
