@@ -18,6 +18,29 @@ def test_deposit(t, u, root_chain):
     root_chain.deposit(value=value_1)
     assert root_chain.getChildChain(blknum)[0] == get_merkle_of_leaves(16, [owner + b'\x00' * 31 + u.int_to_bytes(value_1)]).root
     assert root_chain.getChildChain(blknum)[1] == t.chain.head_state.timestamp
+    assert root_chain.getDepositBlock() == blknum + 1
+
+def test_start_deposit_exit(t, u, root_chain, assert_tx_failed):
+    owner, value_1 = t.a0, 100
+    blknum = root_chain.getDepositBlock()
+    root_chain.deposit(value=value_1)
+    deposit_tx_hash = get_deposit_hash(owner, value_1)
+    utxoPos = blknum * 1000000000
+    priority = t.chain.head_state.timestamp << 128 | utxoPos
+    merkle = FixedMerkle(16, [deposit_tx_hash], True)
+    proof = merkle.create_membership_proof(deposit_tx_hash)
+    root_chain.startDepositExit(utxoPos, value_1, proof)
+    root_chain.exits(utxoPos) == []
+    # Same deposit cannot be exited twice
+    assert_tx_failed(lambda: root_chain.startDepositExit(utxoPos, value_1, proof))
+    # Fails if transaction sender is not the depositor
+    assert_tx_failed(lambda: root_chain.startDepositExit(utxoPos, value_1, proof, sender=t.k1))
+    # Fails if utxoPos is wrong
+    assert_tx_failed(lambda: root_chain.startDepositExit(utxoPos - 1, value_1, proof))
+    # Fails if value given is not equal to deposited value
+    assert_tx_failed(lambda: root_chain.startDepositExit(utxoPos, value_1 - 1, proof))
+    # Fails if proof given is incorrect
+    assert_tx_failed(lambda: root_chain.startDepositExit(utxoPos, value_1, proof[::-1]))
 
 
 def test_start_exit(t, root_chain, assert_tx_failed):
