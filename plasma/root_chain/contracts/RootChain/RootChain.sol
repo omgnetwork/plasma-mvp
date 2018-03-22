@@ -39,7 +39,6 @@ contract RootChain {
     */
     uint256 public currentChildBlock; /* ends with 000 */
     uint256 public currentDepositBlock; /* takes values in range 1..999 */
-    uint256 public weekOldBlock;
     uint256 public childBlockInterval;
 
     struct exit {
@@ -60,28 +59,6 @@ contract RootChain {
         _;
     }
 
-    modifier incrementOldBlocks() {
-        while (childChain[weekOldBlock].created_at < block.timestamp.sub(1 weeks)) {
-            if (childChain[weekOldBlock].created_at == 0) {
-                if (childChain[nextWeekOldChildBlock(weekOldBlock)].created_at == 0)
-                    break;
-                else {
-                    weekOldBlock = nextWeekOldChildBlock(weekOldBlock);
-                }
-            }
-            else weekOldBlock = weekOldBlock.add(1);
-        }
-        _;
-    }
-
-    function nextWeekOldChildBlock(uint256 value)
-        public
-        view
-        returns (uint256)
-    {
-        return value.div(childBlockInterval).add(1).mul(childBlockInterval);
-    }
-
     function getDepositBlock()
         public
         view
@@ -97,7 +74,6 @@ contract RootChain {
         childBlockInterval = 1000;
         currentChildBlock = childBlockInterval;
         currentDepositBlock = 1;
-        weekOldBlock = 1;
         exitsQueue = new PriorityQueue();
     }
 
@@ -106,7 +82,6 @@ contract RootChain {
     function submitBlock(bytes32 root)
         public
         isAuthority
-        incrementOldBlocks
     {
         childChain[currentChildBlock] = childBlock({
             root: root,
@@ -141,7 +116,6 @@ contract RootChain {
 
     function startDepositExit(uint256 utxoPos, uint256 amount, bytes proof)
         public
-        incrementOldBlocks
     {
         uint256 blknum = utxoPos / 1000000000;
         bytes32 root = childChain[blknum].root;
@@ -157,7 +131,6 @@ contract RootChain {
     // @param sigs Both transaction signatures and confirmations signatures used to verify that the exiting transaction has been confirmed
     function startExit(uint256 utxoPos, bytes txBytes, bytes proof, bytes sigs)
         public
-        incrementOldBlocks
     {
         var txList = txBytes.toRLPItem().toList(11);
         uint256 amount = txList[7 + 2 * oindex].toUint();
@@ -178,15 +151,19 @@ contract RootChain {
         private
     {
         uint256 blknum = utxoPos / 1000000000;
+        uint256 txindex = (utxoPos % 1000000000) / 10000;
+        uint256 oindex = utxoPos - blknum * 1000000000 - txindex * 10000;
         uint256 priority;
-        if (blknum < weekOldBlock) {
-            priority = (utxoPos / blknum).mul(weekOldBlock);
+        if (childChain[blknum].created_at - 1 weeks > block.timestamp) {
+            priority = (block.timestamp - 1 weeks);
         } else {
-            priority = utxoPos;
+            priority = childChain[blknum].created_at;
         }
+        // Combine utxoPos with priority to protect collisions
+        priority = priority << 128 | utxoPos;
         require(amount > 0);
         require(exits[utxoPos].amount == 0);
-        exitsQueue.insert(priority << 128 | utxoPos);
+        exitsQueue.insert(priority);
         exits[utxoPos] = exit({
             owner: exitor,
             amount: amount
@@ -223,7 +200,6 @@ contract RootChain {
     // @dev challenge period has ended
     function finalizeExits()
         public
-        incrementOldBlocks
         returns (uint256)
     {
         uint256 twoWeekOldTimestamp = block.timestamp.sub(2 weeks);
