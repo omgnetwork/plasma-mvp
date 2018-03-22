@@ -21,7 +21,7 @@ contract RootChain {
     /*
      * Events
      */
-    event Deposit(address depositor, uint256 amount);
+    event Deposit(address depositor, uint256 amount, uint256 utxoPos);
     event Exit(address exitor, uint256 utxoPos);
 
     /*
@@ -59,13 +59,9 @@ contract RootChain {
         _;
     }
 
-    function getDepositBlock()
-        public
-        view
-        returns (uint256)
-    {
-        return currentChildBlock.sub(childBlockInterval).add(currentDepositBlock);
-    }
+    /*
+     * Public Functions
+     */
 
     function RootChain()
         public
@@ -93,8 +89,6 @@ contract RootChain {
 
     // @dev Allows anyone to deposit funds into the Plasma chain
     // @param txBytes The format of the transaction that'll become the deposit
-    // TODO: This needs to be optimized so that the transaction is created
-    //       from msg.sender and msg.value
     function deposit()
         public
         payable
@@ -106,12 +100,13 @@ contract RootChain {
             root = keccak256(root, zeroBytes);
             zeroBytes = keccak256(zeroBytes, zeroBytes);
         }
-        childChain[getDepositBlock()] = childBlock({
+        uint256 depositBlock = getDepositBlock();
+        childChain[depositBlock] = childBlock({
             root: root,
             created_at: block.timestamp
         });
         currentDepositBlock = currentDepositBlock.add(1);
-        Deposit(msg.sender, msg.value);
+        Deposit(msg.sender, msg.value, depositBlock);
     }
 
     function startDepositExit(uint256 utxoPos, uint256 amount, bytes proof)
@@ -171,7 +166,6 @@ contract RootChain {
         Exit(exitor, utxoPos);
     }
 
-
     // @dev Allows anyone to challenge an exiting transaction by submitting proof of a double spend on the child chain
     // @param cUtxoPos The position of the challenging utxo
     // @param eUtxoPos The position of the exiting utxo
@@ -182,19 +176,21 @@ contract RootChain {
     function challengeExit(uint256 cUtxoPos, uint256 eUtxoPos, bytes txBytes, bytes proof, bytes sigs, bytes confirmationSig)
         public
     {
+        var txList = txBytes.toRLPItem().toList(11);
+        // Checks that spent input submit is the same as the one being exited
+        require(txList[0].toUint() + txList[1].toUint() + txList[2].toUint() == eUtxoPos);
         uint256 txindex = (cUtxoPos % 1000000000) / 10000;
         bytes32 root = childChain[cUtxoPos / 1000000000].root;
         var txHash = keccak256(txBytes);
         var confirmationHash = keccak256(txHash, root);
         var merkleHash = keccak256(txHash, sigs);
         address owner = exits[eUtxoPos].owner;
-    
+
         require(owner == ECRecovery.recover(confirmationHash, confirmationSig));
         require(merkleHash.checkMembership(txindex, root, proof));
         delete exits[eUtxoPos].owner;
         // Clear as much as possible from succesfull challenge
     }
-
 
     // @dev Loops through the priority queue of exits, settling the ones whose challenge
     // @dev challenge period has ended
@@ -217,7 +213,7 @@ contract RootChain {
     }
 
     /* 
-     *  Constants
+     *  Constant functions
      */
     function getChildChain(uint256 blockNumber)
         public
@@ -225,6 +221,14 @@ contract RootChain {
         returns (bytes32, uint256)
     {
         return (childChain[blockNumber].root, childChain[blockNumber].created_at);
+    }
+
+    function getDepositBlock()
+        public
+        view
+        returns (uint256)
+    {
+        return currentChildBlock.sub(childBlockInterval).add(currentDepositBlock);
     }
 
     function getExit(uint256 utxoPos)
@@ -236,6 +240,7 @@ contract RootChain {
     }
 
     function getNextExit()
+        public
         view
         returns (uint256, uint256)
     {
