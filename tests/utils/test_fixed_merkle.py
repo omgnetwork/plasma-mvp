@@ -1,3 +1,4 @@
+import pytest
 from ethereum.utils import sha3
 from plasma.utils.merkle.fixed_merkle import FixedMerkle
 from plasma.utils.utils import get_empty_merkle_tree_hash
@@ -9,14 +10,19 @@ def test_initial_state():
     assert FixedMerkle(12).leaves == [b'\x00' * 32] * (2**12)
 
 
-def test_initialize_with_leaves(assert_tx_failed):
+def test_initialize_with_leaves():
     leaves_1 = [b'a', b'c', b'c']
     leaves_2 = [b'a', b'c', b'c', b'd', b'e']
     assert FixedMerkle(2, leaves_1, True).leaves == leaves_1 + [b'\x00' * 32]
-    # Fails if more leaves are submitted then tree depth permits can handle
-    assert_tx_failed(lambda: FixedMerkle(1, leaves_1, True), AssertionError)
-    assert_tx_failed(lambda: FixedMerkle(2, leaves_2, True), AssertionError)
     assert FixedMerkle(3, leaves_2, True).leaves == leaves_2 + [b'\x00' * 32] * 3
+
+
+def test_initialize_with_leaves_more_than_depth_permits():
+    depth = 1
+    leaves = [b'dummy leaf'] * (2**depth + 1)
+    with pytest.raises(ValueError) as e:
+        FixedMerkle(depth, leaves, True)
+    assert str(e.value) == 'num of leaves exceed max avaiable num with the depth'
 
 
 def test_hash_empty_tree():

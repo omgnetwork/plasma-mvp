@@ -12,3 +12,6 @@ dist/
 .cache/
 .pytest_cache/
 contract_data/
+
+*.pyc
+build/

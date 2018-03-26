@@ -31,14 +31,6 @@ def create_abi(path):
 
 
 @pytest.fixture
-def assert_failed(t):
-    def assert_failed(function_to_test, exception):
-        with pytest.raises(exception):
-            function_to_test()
-    return assert_failed
-
-
-@pytest.fixture
 def assert_tx_failed(t):
     def assert_tx_failed(function_to_test, exception=tester.TransactionFailed):
         initial_state = t.chain.snapshot()

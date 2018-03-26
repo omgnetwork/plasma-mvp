@@ -1,6 +1,11 @@
 import rlp
 from ethereum import utils
+
 from .block import Block
+from .exceptions import (InvalidBlockMerkleException,
+                         InvalidBlockSignatureException,
+                         InvalidTxSignatureException, TxAlreadySpentException,
+                         TxAmountMismatchException)
 from .transaction import Transaction
 
 
@@ -60,10 +65,13 @@ class ChildChain(object):
                 valid_signature = tx.sig2 != b'\x00' * 65 and transaction.newowner2 == tx.sender2
                 spent = transaction.spent2
                 input_amount += transaction.amount2
-            assert not spent
-            assert valid_signature
+            if spent:
+                raise TxAlreadySpentException('failed to validate tx')
+            if not valid_signature:
+                raise InvalidTxSignatureException('failed to validate tx')
 
-        assert input_amount == output_amount
+        if input_amount != output_amount:
+            raise TxAmountMismatchException('failed to validate tx')
 
     def mark_utxo_spent(self, blknum, txindex, oindex):
         if blknum == 0:
@@ -76,10 +84,12 @@ class ChildChain(object):
 
     def submit_block(self, block):
         block = rlp.decode(utils.decode_hex(block), Block)
-        assert block.merkilize_transaction_set == self.current_block.merkilize_transaction_set
+        if block.merkilize_transaction_set != self.current_block.merkilize_transaction_set:
+            raise InvalidBlockMerkleException('input block merkle mismatch with the current block')
 
         valid_signature = block.sig != b'\x00' * 65 and block.sender == self.authority
-        assert valid_signature
+        if not valid_signature:
+            raise InvalidBlockSignatureException('failed to submit block')
 
         self.root_chain.transact({'from': '0x' + self.authority.hex()}).submitBlock(block.merkle.root, self.current_block_number)
         # TODO: iterate through block and validate transactions
