@@ -1,5 +1,9 @@
 pragma solidity 0.4.18;
 
+/**
+ * @title Merkle
+ * @dev Checks that a particular leaf node is in a given Merkle tree given the index, root hash, and a proof
+ */
 
 library Merkle {
     function checkMembership(bytes32 leaf, uint256 index, bytes32 rootHash, bytes proof)
