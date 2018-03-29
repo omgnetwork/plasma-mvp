@@ -7,7 +7,6 @@ pragma solidity 0.4.18;
  */
 
 library RLP {
-
     uint constant DATA_SHORT_START = 0x80;
     uint constant DATA_LONG_START = 0xB8;
     uint constant LIST_SHORT_START = 0xC0;
@@ -278,7 +277,7 @@ library RLP {
     function toInt(RLPItem memory self)
         internal
         view
-        returns (int data) 
+        returns (int data)
     {
         return int(toUint(self));
     }
@@ -427,7 +426,7 @@ library RLP {
     // Check that an RLP item is valid.
     function _validate(RLPItem memory self)
         private
-        pure 
+        pure
         returns (bool ret)
     {
         // Check that RLP is well-formed.
