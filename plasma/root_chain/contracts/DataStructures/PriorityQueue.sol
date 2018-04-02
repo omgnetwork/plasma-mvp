@@ -76,27 +76,26 @@ contract PriorityQueue {
     function percUp(uint256 i) 
         private
     {
-        while (i.div(2) > 0) {
-            if (heapList[i] < heapList[i.div(2)]) {
-                uint256 tmp = heapList[i.div(2)];
-                heapList[i.div(2)] = heapList[i];
-                heapList[i] = tmp;
-            }
+        uint256 j = i;
+        uint256 newVal = heapList[i];
+        while (newVal < heapList[i.div(2)]) {
+            heapList[i] = heapList[i.div(2)];
             i = i.div(2);
         }
+        if (i != j) heapList[i] = newVal;
     }
 
     function percDown(uint256 i)
         private
     {
-        while (i.mul(2) <= currentSize) {
-            uint256 mc = minChild(i);
-            if (heapList[i] > heapList[mc]) {
-                uint256 tmp = heapList[i];
-                heapList[i] = heapList[mc];
-                heapList[mc] = tmp;
-            }
+        uint256 j = i;
+        uint256 newVal = heapList[i];
+        uint256 mc = minChild(i);
+        while (mc <= currentSize && newVal > heapList[mc]) {
+            heapList[i] = heapList[mc];
             i = mc;
+            mc = minChild(i);
         }
+        if (i != j) heapList[i] = newVal;
     }
 }
