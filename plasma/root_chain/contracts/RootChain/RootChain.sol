@@ -25,12 +25,13 @@ contract RootChain {
      */
     event Deposit(
         address indexed depositor,
-        uint256 amount,
-        uint256 depositBlock
+        uint256 indexed depositBLock,
+        uint256 amount
     );
-    event Exit(
+    event ExitStarted(
         address indexed exitor,
-        uint256 utxoPos
+        uint256 indexed utxoPos,
+        uint256 amount
     );
 
     /*
@@ -112,7 +113,7 @@ contract RootChain {
             created_at: block.timestamp
         });
         currentDepositBlock = currentDepositBlock.add(1);
-        Deposit(msg.sender, msg.value, depositBlock);
+        Deposit(msg.sender, depositBlock, msg.value);
     }
 
     function startDepositExit(uint256 depositPos, uint256 amount)
@@ -172,7 +173,7 @@ contract RootChain {
             owner: exitor,
             amount: amount
         });
-        Exit(exitor, utxoPos);
+        ExitStarted(msg.sender, utxoPos, amount);
     }
 
     // @dev Allows anyone to challenge an exiting transaction by submitting proof of a double spend on the child chain
