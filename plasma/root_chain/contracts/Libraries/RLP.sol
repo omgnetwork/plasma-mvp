@@ -1,11 +1,11 @@
 pragma solidity 0.4.18;
+
 /**
-* @title RLPReader
-*
-* RLPReader is used to read and parse RLP encoded data in memory.
-*
-* @author Andreas Olofsson (androlo1980@gmail.com)
-*/
+ * @title RLPReader
+ * @dev RLPReader is used to read and parse RLP encoded data in memory.
+ * @author Andreas Olofsson (androlo1980@gmail.com)
+ */
+
 library RLP {
     uint constant DATA_SHORT_START = 0x80;
     uint constant DATA_LONG_START = 0xB8;
