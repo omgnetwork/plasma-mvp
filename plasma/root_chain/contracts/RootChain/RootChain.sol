@@ -22,8 +22,15 @@ contract RootChain {
     /*
      * Events
      */
-    event Deposit(address depositor, uint256 amount);
-    event Exit(address exitor, uint256 utxoPos);
+    event Deposit(
+        address indexed depositor,
+        uint256 amount
+    );
+    event ExitStarted(
+        address indexed exitor,
+        uint256 indexed utxoPos,
+        uint256 amount
+    );
 
     /*
      *  Storage
@@ -134,7 +141,8 @@ contract RootChain {
         for (uint256 i; i < 6; i++) {
             require(txList[i].toUint() == 0);
         }
-        require(txList[7].toUint() == msg.value);
+        uint256 amount = txList[7].toUint();
+        require(amount == msg.value);
         require(txList[9].toUint() == 0);
         bytes32 zeroBytes;
         bytes32 root = keccak256(keccak256(txBytes), new bytes(130));
@@ -147,7 +155,7 @@ contract RootChain {
             created_at: block.timestamp
         });
         currentDepositBlock = currentDepositBlock.add(1);
-        Deposit(txList[6].toAddress(), txList[7].toUint());
+        Deposit(txList[6].toAddress(), amount);
     }
 
     // @dev Starts to exit a specified utxo
@@ -181,12 +189,13 @@ contract RootChain {
         require(exitIds[utxoPos] == 0);
         exitIds[utxoPos] = priority;
         exitsQueue.insert(priority);
+        uint256 amount = txList[7 + 2 * oindex].toUint();
         exits[priority] = exit({
-            owner: txList[6 + 2 * oindex].toAddress(),
-            amount: txList[7 + 2 * oindex].toUint(),
+            owner: msg.sender,
+            amount: amount,
             utxoPos: utxoPos
         });
-        Exit(msg.sender, utxoPos);
+        ExitStarted(msg.sender, utxoPos, amount);
     }
 
     // @dev Allows anyone to challenge an exiting transaction by submitting proof of a double spend on the child chain
