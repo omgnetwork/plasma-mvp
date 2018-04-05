@@ -1,7 +1,7 @@
 from plasma.child_chain.transaction import Transaction
 
 
-def test_transaction(t, u, assert_failed):
+def test_transaction(t):
     blknum1, txindex1, oindex1 = 1, 1, 0
     blknum2, txindex2, oindex2 = 2, 2, 1
     newowner1, amount1 = t.a1, 100

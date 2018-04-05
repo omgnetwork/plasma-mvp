@@ -1,17 +1,16 @@
 pragma solidity 0.4.18;
-import 'SafeMath.sol';
-import 'Math.sol';
-import 'RLP.sol';
-import 'Merkle.sol';
-import 'Validate.sol';
-import 'PriorityQueue.sol';
 
+import "./SafeMath.sol";
+import "./RLP.sol";
+import "./Merkle.sol";
+import "./Validate.sol";
+import "./PriorityQueue.sol";
+import "./ByteUtils.sol";
 
 /**
  * @title RootChain
  * @dev This contract secures a utxo payments plasma child chain to ethereum
  */
-
 
 contract RootChain {
     using SafeMath for uint256;
