@@ -126,7 +126,7 @@ def test_apply_deposit(child_chain):
         'args': {
             'depositor': '0xfd02EcEE62797e75D86BCff1642EB0844afB28c7',
             'amount': 100,
-            'utxoPos': 1,
+            'depositBlock': 1,
         },
         'event': 'Deposit',
         'logIndex': 0,

@@ -26,7 +26,7 @@ class ChildChain(object):
     def apply_deposit(self, event):
         newowner1 = event['args']['depositor']
         amount1 = event['args']['amount']
-        blknum1 = event['args']['utxoPos']
+        blknum1 = event['args']['depositBlock']
         deposit_tx = Transaction(blknum1, 0, 0, 0, 0, 0,
                                  newowner1, amount1, b'\x00' * 20, 0, 0)
         deposit_block = Block([deposit_tx])

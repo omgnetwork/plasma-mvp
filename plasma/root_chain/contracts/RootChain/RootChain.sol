@@ -1,5 +1,7 @@
 pragma solidity 0.4.18;
+
 import 'SafeMath.sol';
+import 'Math.sol';
 import 'RLP.sol';
 import 'Merkle.sol';
 import 'Validate.sol';
@@ -145,13 +147,7 @@ contract RootChain {
         uint256 blknum = utxoPos / 1000000000;
         uint256 txindex = (utxoPos % 1000000000) / 10000;
         uint256 oindex = utxoPos - blknum * 1000000000 - txindex * 10000;
-        uint256 priority;
-        if (childChain[blknum].created_at - 1 weeks > block.timestamp) {
-            priority = (block.timestamp - 1 weeks);
-        } else {
-            priority = childChain[blknum].created_at;
-        }
-        // Combine utxoPos with priority to protect collisions
+        uint256 priority = Math.max(childChain[blknum].created_at, block.timestamp - 1 weeks);
         priority = priority << 128 | utxoPos;
         require(amount > 0);
         require(exits[utxoPos].amount == 0);
@@ -191,7 +187,6 @@ contract RootChain {
     // @dev challenge period has ended
     function finalizeExits()
         public
-        returns (uint256)
     {
         uint256 twoWeekOldTimestamp = block.timestamp.sub(2 weeks);
         uint256 utxoPos;
