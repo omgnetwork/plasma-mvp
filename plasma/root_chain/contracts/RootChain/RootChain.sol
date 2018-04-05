@@ -21,7 +21,7 @@ contract RootChain {
     /*
      * Events
      */
-    event Deposit(address depositor, uint256 amount, uint256 utxoPos);
+    event Deposit(address depositor, uint256 amount, uint256 depositBlock);
     event Exit(address exitor, uint256 utxoPos);
 
     /*
@@ -94,12 +94,7 @@ contract RootChain {
         payable
     {
         require(currentDepositBlock < childBlockInterval);
-        bytes32 zeroBytes;
         bytes32 root = keccak256(msg.sender, msg.value);
-        for (uint i = 0; i < 16; i++) {
-            root = keccak256(root, zeroBytes);
-            zeroBytes = keccak256(zeroBytes, zeroBytes);
-        }
         uint256 depositBlock = getDepositBlock();
         childChain[depositBlock] = childBlock({
             root: root,
@@ -109,14 +104,16 @@ contract RootChain {
         Deposit(msg.sender, msg.value, depositBlock);
     }
 
-    function startDepositExit(uint256 utxoPos, uint256 amount, bytes proof)
+    function startDepositExit(uint256 depositPos, uint256 amount)
         public
     {
-        uint256 blknum = utxoPos / 1000000000;
+        uint256 blknum = depositPos % 1000000000;
+        // Makes sure that deposit position is actually a deposit
+        require(blknum % childBlockInterval != 0);
         bytes32 root = childChain[blknum].root;
-        bytes32 txHash = keccak256(msg.sender, amount);
-        require(txHash.checkMembership(0, root, proof));
-        addExitToQueue(utxoPos, msg.sender, amount);
+        bytes32 depositHash = keccak256(msg.sender, amount);
+        require(root == depositHash);
+        addExitToQueue(depositPos, msg.sender, amount);
     }
 
     // @dev Starts to exit a specified utxo
@@ -168,17 +165,15 @@ contract RootChain {
 
     // @dev Allows anyone to challenge an exiting transaction by submitting proof of a double spend on the child chain
     // @param cUtxoPos The position of the challenging utxo
-    // @param eUtxoPos The position of the exiting utxo
+    // @param eUtxoIndex The output position of the exiting utxo
     // @param txBytes The challenging transaction in bytes RLP form
     // @param proof Proof of inclusion for the transaction used to challenge
     // @param sigs Signatures for the transaction used to challenge
     // @param confirmationSig The confirmation signature for the transaction used to challenge
-    function challengeExit(uint256 cUtxoPos, uint256 eUtxoPos, bytes txBytes, bytes proof, bytes sigs, bytes confirmationSig)
+    function challengeExit(uint256 cUtxoPos, uint256 eUtxoIndex, bytes txBytes, bytes proof, bytes sigs, bytes confirmationSig)
         public
     {
-        var txList = txBytes.toRLPItem().toList(11);
-        // Checks that spent input submit is the same as the one being exited
-        require(txList[0].toUint() + txList[1].toUint() + txList[2].toUint() == eUtxoPos);
+        uint256 eUtxoPos = getUtxoPos(txBytes, eUtxoIndex);
         uint256 txindex = (cUtxoPos % 1000000000) / 10000;
         bytes32 root = childChain[cUtxoPos / 1000000000].root;
         var txHash = keccak256(txBytes);
@@ -188,8 +183,8 @@ contract RootChain {
 
         require(owner == ECRecovery.recover(confirmationHash, confirmationSig));
         require(merkleHash.checkMembership(txindex, root, proof));
+        // Clear as much as possible from succesful challenge
         delete exits[eUtxoPos].owner;
-        // Clear as much as possible from succesfull challenge
     }
 
     // @dev Loops through the priority queue of exits, settling the ones whose challenge
@@ -239,6 +234,15 @@ contract RootChain {
         return (exits[utxoPos].owner, exits[utxoPos].amount);
     }
 
+    function getUtxoPos(bytes txBytes, uint256 oIndex)
+        public
+        returns (uint256)
+    {
+        var txList = txBytes.toRLPItem().toList(11);
+        uint256 oIndexShift = oIndex * 3;
+        return txList[0 + oIndexShift].toUint() + txList[1 + oIndexShift].toUint() + txList[2 + oIndexShift].toUint();
+    }
+
     function getNextExit()
         public
         view
@@ -246,7 +250,7 @@ contract RootChain {
     {
         uint256 priority = exitsQueue.getMin();
         uint256 utxoPos = uint256(uint128(priority));
-        uint256 created_at = (priority - utxoPos) >> 128;
+        uint256 created_at = priority >> 128;
         return (utxoPos, created_at);
     }
 }
