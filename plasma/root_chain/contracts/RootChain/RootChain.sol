@@ -42,6 +42,7 @@ contract RootChain {
     uint256 public currentChildBlock; /* ends with 000 */
     uint256 public currentDepositBlock; /* takes values in range 1..999 */
     uint256 public childBlockInterval;
+    uint256 public currentFeeExit;
 
     struct exit {
         address owner;
@@ -72,6 +73,7 @@ contract RootChain {
         childBlockInterval = 1000;
         currentChildBlock = childBlockInterval;
         currentDepositBlock = 1;
+        currentFeeExit = 1;
         exitsQueue = new PriorityQueue();
     }
 
@@ -115,14 +117,16 @@ contract RootChain {
         bytes32 root = childChain[blknum].root;
         bytes32 depositHash = keccak256(msg.sender, amount);
         require(root == depositHash);
-        addExitToQueue(depositPos, msg.sender, amount);
+        addExitToQueue(depositPos, msg.sender, amount, childChain[blknum].created_at);
     }
 
     function startFeeExit(uint256 amount)
         public
         isAuthority
+        returns (uint256)
     {
-        addExitToQueue(0, msg.sender, amount);
+        addExitToQueue(currentFeeExit, msg.sender, amount, block.timestamp + 1);
+        currentFeeExit = currentFeeExit.add(1);
     }
 
     // @dev Starts to exit a specified utxo
@@ -145,15 +149,14 @@ contract RootChain {
         bytes32 merkleHash = keccak256(keccak256(txBytes), ByteUtils.slice(sigs, 0, 130));
         require(Validate.checkSigs(keccak256(txBytes), root, txList[0].toUint(), txList[3].toUint(), sigs));
         require(merkleHash.checkMembership(txindex, root, proof));
-        addExitToQueue(utxoPos, exitor, amount);
+        addExitToQueue(utxoPos, exitor, amount, childChain[blknum].created_at);
     }
 
     // Priority is a given utxos position in the exit priority queue
-    function addExitToQueue(uint256 utxoPos, address exitor, uint256 amount)
+    function addExitToQueue(uint256 utxoPos, address exitor, uint256 amount, uint256 created_at)
         private
     {
-        uint256 blknum = utxoPos / 1000000000;
-        uint256 priority = Math.max(childChain[blknum].created_at, block.timestamp - 1 weeks);
+        uint256 priority = Math.max(created_at, block.timestamp - 1 weeks);
         priority = priority << 128 | utxoPos;
         require(amount > 0);
         require(exits[utxoPos].amount == 0);
