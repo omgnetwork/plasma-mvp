@@ -118,6 +118,13 @@ contract RootChain {
         addExitToQueue(depositPos, msg.sender, amount);
     }
 
+    function startFeeExit(uint256 amount)
+        public
+        isAuthority
+    {
+        addExitToQueue(0, msg.sender, amount);
+    }
+
     // @dev Starts to exit a specified utxo
     // @param utxoPos The position of the exiting utxo in the format of blknum * 1000000000 + index * 10000 + oindex
     // @param txBytes The transaction being exited in RLP bytes format

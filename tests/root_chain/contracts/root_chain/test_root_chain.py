@@ -44,6 +44,16 @@ def test_start_deposit_exit(t, u, root_chain, assert_tx_failed):
     assert_tx_failed(lambda: root_chain.startDepositExit(utxo_pos, value_1 + 1))
 
 
+def test_start_fee_exit(t, u, root_chain, assert_tx_failed):
+    root_chain.startFeeExit(1);
+    expected_utxo_pos = 0
+    expected_created_at = t.chain.head_state.timestamp - 60 * 60 * 24 * 7
+    utxo_pos, created_at = root_chain.getNextExit()
+    assert utxo_pos == expected_utxo_pos
+    assert created_at == expected_created_at
+    # Fails if transaction sender isn't the authority
+    assert_tx_failed(lambda: root_chain.startFeeExit(1, sender=t.k1))
+
 def test_start_exit(t, root_chain, assert_tx_failed):
     week_and_a_half = 60 * 60 * 24 * 13
     owner, value_1, key = t.a1, 100, t.k1
