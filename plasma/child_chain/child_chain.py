@@ -15,7 +15,8 @@ class ChildChain(object):
         self.root_chain = root_chain
         self.authority = authority
         self.blocks = {}
-        self.current_block_number = 1
+        self.child_block_interval = 1000
+        self.current_block_number = self.child_block_interval
         self.current_block = Block()
         self.pending_transactions = []
 
@@ -24,14 +25,20 @@ class ChildChain(object):
         deposit_filter.watch(self.apply_deposit)
 
     def apply_deposit(self, event):
-        newowner1 = event['args']['depositor']
-        amount1 = event['args']['amount']
-        deposit_tx = Transaction(0, 0, 0, 0, 0, 0,
-                                 newowner1, amount1, b'\x00' * 20, 0, 0)
+        event_args = event['args']
+        depositor = event_args['depositor']
+        amount = event_args['amount']
+        blknum = event_args['blknum']
+
+        deposit_tx = Transaction(0, 0, 0,
+                                 0, 0, 0,
+                                 depositor, amount,
+                                 b'\x00' * 20, 0,
+                                 0)
+
         deposit_block = Block([deposit_tx])
         # Add block validation
-        self.blocks[self.current_block_number] = deposit_block
-        self.current_block_number += 1
+        self.blocks[blknum] = deposit_block
 
     def apply_transaction(self, transaction):
         tx = rlp.decode(utils.decode_hex(transaction), Transaction)
@@ -94,11 +101,23 @@ class ChildChain(object):
         self.root_chain.transact({'from': '0x' + self.authority.hex()}).submitBlock(block.merkle.root, self.current_block_number)
         # TODO: iterate through block and validate transactions
         self.blocks[self.current_block_number] = self.current_block
-        self.current_block_number += 1
+        self.current_block_number += self.child_block_interval
         self.current_block = Block()
 
     def get_transaction(self, blknum, txindex):
         return rlp.encode(self.blocks[blknum].transaction_set[txindex]).hex()
+
+    def get_tx_pos(self, transaction):
+        decoded_tx = rlp.decode(utils.decode_hex(transaction), Transaction)
+
+        for blknum in self.blocks:
+            block = self.blocks[blknum]
+            for txindex in range(0, len(block.transaction_set)):
+                tx = block.transaction_set[txindex]
+                if (decoded_tx.hash == tx.hash):
+                    return blknum, txindex
+
+        return None, None
 
     def get_block(self, blknum):
         return rlp.encode(self.blocks[blknum]).hex()

@@ -2,7 +2,7 @@ import json
 import os
 from ethereum.tools import tester as t
 from solc import compile_standard
-from web3.contract import ConciseContract
+from web3.contract import ConciseContract, Contract
 from web3 import Web3, HTTPProvider
 from plasma.config import plasma_config
 
@@ -42,7 +42,7 @@ class Deployer(object):
         contract_file.close()
         return abi, bytecode, contract_name
 
-    def create_contract(self, path, args=(), gas=4410000, sender=t.k0):
+    def create_contract(self, path, args=(), gas=4410000, sender=t.k0, concise=True):
         abi, bytecode, contract_name = self.compile_contract(path, args)
         contract = self.w3.eth.contract(abi=abi, bytecode=bytecode)
 
@@ -54,7 +54,8 @@ class Deployer(object):
         contract_address = tx_receipt['contractAddress']
 
         # Contract instance in concise mode
-        contract_instance = self.w3.eth.contract(abi, contract_address, ContractFactoryClass=ConciseContract)
+        contract_factory_class = ConciseContract if concise else Contract
+        contract_instance = self.w3.eth.contract(abi, contract_address, ContractFactoryClass=contract_factory_class)
         print("Successfully deployed {} contract!".format(contract_name))
         return contract_instance
 

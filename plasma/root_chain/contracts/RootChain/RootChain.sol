@@ -22,7 +22,11 @@ contract RootChain {
     /*
      * Events
      */
-    event Deposit(address depositor, uint256 amount);
+    event Deposit(
+        address indexed depositor,
+        uint256 indexed amount,
+        uint256 blknum
+    );
     event Exit(address exitor, uint256 utxoPos);
 
     /*
@@ -107,11 +111,13 @@ contract RootChain {
 
     // @dev Allows Plasma chain operator to submit block root
     // @param root The root of a child chain block
-    function submitBlock(bytes32 root)
+    function submitBlock(bytes32 root, uint256 blknum)
         public
         isAuthority
         incrementOldBlocks
-    {
+    {   
+        require(blknum == currentChildBlock);
+
         childChain[currentChildBlock] = childBlock({
             root: root,
             created_at: block.timestamp
@@ -142,12 +148,13 @@ contract RootChain {
             root = keccak256(root, zeroBytes);
             zeroBytes = keccak256(zeroBytes, zeroBytes);
         }
-        childChain[getDepositBlock()] = childBlock({
+        uint256 blknum = getDepositBlock();
+        childChain[blknum] = childBlock({
             root: root,
             created_at: block.timestamp
         });
         currentDepositBlock = currentDepositBlock.add(1);
-        Deposit(txList[6].toAddress(), txList[7].toUint());
+        Deposit(txList[6].toAddress(), txList[7].toUint(), blknum);
     }
 
     // @dev Starts to exit a specified utxo
