@@ -1,6 +1,5 @@
 import pytest
-from plasma.child_chain.exceptions import (InvalidBlockMerkleException,
-                                           InvalidBlockSignatureException,
+from plasma.child_chain.exceptions import (InvalidBlockSignatureException,
                                            InvalidTxSignatureException,
                                            TxAlreadySpentException)
 

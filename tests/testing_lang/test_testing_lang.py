@@ -1,5 +1,3 @@
-import pytest
-
 def test_parse_token_without_method_id(test_lang):
     test_lang_string = '''
         Withdraw[Deposit1,Owner1]
@@ -9,6 +7,7 @@ def test_parse_token_without_method_id(test_lang):
 
     assert handler == 'Withdraw'
     assert arguments == ['Deposit1', 'Owner1']
+
 
 def test_parse_token_with_method_id(test_lang):
     test_lang_string = '''
@@ -20,6 +19,7 @@ def test_parse_token_with_method_id(test_lang):
     assert handler == 'Deposit'
     assert arguments == ['Deposit1', 'Owner1', 'Amount1']
 
+
 def test_parse_token_with_null_args(test_lang):
     test_lang_string = '''
         Transfer1[Deposit1,Owner2,100,Owner1,null,null,null,null]
@@ -29,6 +29,7 @@ def test_parse_token_with_null_args(test_lang):
 
     assert handler == 'Transfer'
     assert arguments == ['Transfer1', 'Deposit1', 'Owner2', '100', 'Owner1', None, None, None, None]
+
 
 def test_get_account(test_lang):
     account1 = test_lang.get_account('NonexistentAccount1')
