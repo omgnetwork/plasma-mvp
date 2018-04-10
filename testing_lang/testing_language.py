@@ -148,10 +148,17 @@ class TestingLanguage(object):
             'confirm_sigs': ''
         }
 
-    def submit_block(self):
+    def submit_block(self, signatory=AUTHORITY):
+        signing_key = None
+        if signatory == AUTHORITY:
+            signing_key = AUTHORITY_KEY
+        elif signatory != None:
+            signing_key = self.get_account(signatory)['key']
+
         block = self.child_chain.current_block
         block.make_mutable()
-        block.sign(AUTHORITY_KEY)
+        if signing_key:
+            block.sign(signing_key)
         
         self.child_chain.submit_block(rlp.encode(block).hex())
 
