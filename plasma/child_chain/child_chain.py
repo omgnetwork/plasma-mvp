@@ -28,16 +28,15 @@ class ChildChain(object):
         event_args = event['args']
         depositor = event_args['depositor']
         amount = event_args['amount']
-        blknum = event_args['blknum']
+        blknum = event_args['depositBlock']
 
         deposit_tx = Transaction(0, 0, 0,
                                  0, 0, 0,
                                  depositor, amount,
                                  b'\x00' * 20, 0,
                                  0)
-
         deposit_block = Block([deposit_tx])
-        # Add block validation
+
         self.blocks[blknum] = deposit_block
 
     def apply_transaction(self, transaction):
@@ -59,6 +58,7 @@ class ChildChain(object):
         input_amount = 0
 
         for (blknum, txindex, oindex) in inputs:
+            # Assume empty inputs and are valid
             if blknum == 0:
                 continue
 
@@ -98,7 +98,7 @@ class ChildChain(object):
         if not valid_signature:
             raise InvalidBlockSignatureException('failed to submit block')
 
-        self.root_chain.transact({'from': '0x' + self.authority.hex()}).submitBlock(block.merkle.root, self.current_block_number)
+        self.root_chain.transact({'from': '0x' + self.authority.hex()}).submitBlock(block.merkle.root)
         # TODO: iterate through block and validate transactions
         self.blocks[self.current_block_number] = self.current_block
         self.current_block_number += self.child_block_interval

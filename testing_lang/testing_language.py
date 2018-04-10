@@ -86,23 +86,23 @@ class TestingLanguage(object):
         account = self.get_account(account_name)
         amount = int(amount)
 
-        tx = Transaction(0, 0, 0, 0, 0, 0,
-                         account['address'], amount,
-                         NULL_ADDRESS, 0,
-                         0)
-        tx_bytes = rlp.encode(tx, UnsignedTransaction)
-
         self.root_chain.transact({
             'from': account['address'],
             'value': amount
-        }).deposit(tx_bytes)
+        }).deposit()
 
         # Wait for the Deposit event to be detected
         time.sleep(1)
 
+        tx = Transaction(0, 0, 0,
+                         0, 0, 0,
+                         account['address'], amount,
+                         NULL_ADDRESS, 0,
+                         0)
+
         self.transactions[deposit_name] = {
             'tx': tx,
-            'confirm_sigs': ''
+            'confirm_sigs': b''
         }
 
     def transfer(self, transfer_name,
@@ -145,7 +145,7 @@ class TestingLanguage(object):
 
         self.transactions[transfer_name] = {
             'tx': tx,
-            'confirm_sigs': ''
+            'confirm_sigs': b''
         }
 
     def submit_block(self, signatory=AUTHORITY):
@@ -179,6 +179,7 @@ class TestingLanguage(object):
         self.transactions[tx_name]['confirm_sigs'] = confirm_sigs
 
     def withdraw(self, tx_name, exitor_name):
+        is_deposit = 'Deposit' in tx_name
         transaction = self.transactions[tx_name.split('.')[0]]
         account = self.get_account(exitor_name)
 
@@ -189,17 +190,23 @@ class TestingLanguage(object):
 
         blknum, txindex = self.child_chain.get_tx_pos(encoded_tx)
         oindex = 1 if tx_name.endswith('.1') else 0
-
-        output_block = self.child_chain.blocks[blknum]
-        hashed_transaction_set = [transaction.merkle_hash for transaction in output_block.transaction_set]
-        merkle = FixedMerkle(16, hashed_transaction_set, hashed=True)
-        proof = merkle.create_membership_proof(tx.merkle_hash)
-
         utxo_pos = blknum * 1000000000 + txindex * 10000 + oindex * 1
 
-        self.root_chain.transact({
-            'from': account['address']
-        }).startExit(utxo_pos, tx_bytes, proof, sigs)
+        if is_deposit:
+            deposit_amount = tx.amount1
+
+            self.root_chain.transact({
+                'from': account['address']
+            }).startDepositExit(utxo_pos + 1, deposit_amount)
+        else:
+            output_block = self.child_chain.blocks[blknum]
+            hashed_transaction_set = [transaction.merkle_hash for transaction in output_block.transaction_set]
+            merkle = FixedMerkle(16, hashed_transaction_set, hashed=True)
+            proof = merkle.create_membership_proof(tx.merkle_hash)
+
+            self.root_chain.transact({
+                'from': account['address']
+            }).startExit(utxo_pos, tx_bytes, proof, sigs)
 
     def parse(self, test_lang_string):
         for token in test_lang_string.split():

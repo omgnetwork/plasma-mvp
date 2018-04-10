@@ -88,4 +88,3 @@ def test_submit_block_invalid_sig(test_lang):
 
     with pytest.raises(InvalidBlockSignatureException):
         test_lang.parse(test_lang_string)
-
