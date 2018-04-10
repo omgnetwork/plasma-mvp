@@ -63,7 +63,7 @@ class ClientParser():
                          newOwner1, amount1,
                          newOwner2, amount2,
                          0)
-        self.client.deposit(tx, key)
+        self.client.deposit(tx)
         print("Succesfully deposited %s to %s" % (amount1, newOwner1))
 
     def send_tx(self):
