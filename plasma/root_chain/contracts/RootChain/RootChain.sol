@@ -109,7 +109,7 @@ contract RootChain {
     function startDepositExit(uint256 depositPos, uint256 amount)
         public
     {
-        uint256 blknum = depositPos % 1000000000;
+        uint256 blknum = depositPos / 1000000000;
         // Makes sure that deposit position is actually a deposit
         require(blknum % childBlockInterval != 0);
         bytes32 root = childChain[blknum].root;
