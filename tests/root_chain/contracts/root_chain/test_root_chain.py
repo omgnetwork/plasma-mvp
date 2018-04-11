@@ -23,9 +23,11 @@ def test_deposit(t, u, root_chain):
 
 def test_start_deposit_exit(t, u, root_chain, assert_tx_failed):
     value_1 = 100
+    # Deposit once to make sure everything works for deposit block
+    root_chain.deposit(value=value_1)
     blknum = root_chain.getDepositBlock()
     root_chain.deposit(value=value_1)
-    expected_utxo_pos = blknum * 1000000000 + 1
+    expected_utxo_pos = blknum * 1000000000
     expected_created_at = t.chain.head_state.timestamp
     root_chain.startDepositExit(expected_utxo_pos, value_1)
     utxo_pos, created_at = root_chain.getNextExit()
@@ -37,7 +39,7 @@ def test_start_deposit_exit(t, u, root_chain, assert_tx_failed):
     # Fails if transaction sender is not the depositor
     assert_tx_failed(lambda: root_chain.startDepositExit(utxo_pos, value_1, sender=t.k1))
     # Fails if utxo_pos is wrong
-    assert_tx_failed(lambda: root_chain.startDepositExit(utxo_pos + 1, value_1))
+    assert_tx_failed(lambda: root_chain.startDepositExit(utxo_pos * 2, value_1))
     # Fails if value given is not equal to deposited value
     assert_tx_failed(lambda: root_chain.startDepositExit(utxo_pos, value_1 + 1))
 
