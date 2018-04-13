@@ -127,11 +127,11 @@ contract RootChain {
         public
     {
         var txList = txBytes.toRLPItem().toList(11);
-        uint256 amount = txList[7 + 2 * oindex].toUint();
         uint256 blknum = utxoPos / 1000000000;
         uint256 txindex = (utxoPos % 1000000000) / 10000;
         uint256 oindex = utxoPos - blknum * 1000000000 - txindex * 10000;
         address exitor = txList[6 + 2 * oindex].toAddress();
+        uint256 amount = txList[7 + 2 * oindex].toUint();
         require(msg.sender == exitor);
         bytes32 root = childChain[blknum].root;
         bytes32 merkleHash = keccak256(keccak256(txBytes), ByteUtils.slice(sigs, 0, 130));

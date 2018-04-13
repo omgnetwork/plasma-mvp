@@ -15,7 +15,8 @@ class ChildChain(object):
         self.root_chain = root_chain
         self.authority = authority
         self.blocks = {}
-        self.current_block_number = 1
+        self.child_block_interval = 1000
+        self.current_block_number = self.child_block_interval
         self.current_block = Block()
         self.pending_transactions = []
 
@@ -24,15 +25,19 @@ class ChildChain(object):
         deposit_filter.watch(self.apply_deposit)
 
     def apply_deposit(self, event):
-        newowner1 = event['args']['depositor']
-        amount1 = event['args']['amount']
-        blknum1 = event['args']['depositBlock']
-        deposit_tx = Transaction(blknum1, 0, 0, 0, 0, 0,
-                                 newowner1, amount1, b'\x00' * 20, 0, 0)
+        event_args = event['args']
+        depositor = event_args['depositor']
+        amount = event_args['amount']
+        blknum = event_args['depositBlock']
+
+        deposit_tx = Transaction(blknum, 0, 0,
+                                 0, 0, 0,
+                                 depositor, amount,
+                                 b'\x00' * 20, 0,
+                                 0)
         deposit_block = Block([deposit_tx])
-        # Add block validation
-        self.blocks[self.current_block_number] = deposit_block
-        self.current_block_number += 1
+
+        self.blocks[blknum] = deposit_block
 
     def apply_transaction(self, transaction):
         tx = rlp.decode(utils.decode_hex(transaction), Transaction)
@@ -93,10 +98,10 @@ class ChildChain(object):
         if not valid_signature:
             raise InvalidBlockSignatureException('failed to submit block')
 
-        self.root_chain.transact({'from': '0x' + self.authority.hex()}).submitBlock(block.merkle.root, self.current_block_number)
+        self.root_chain.transact({'from': '0x' + self.authority.hex()}).submitBlock(block.merkle.root)
         # TODO: iterate through block and validate transactions
         self.blocks[self.current_block_number] = self.current_block
-        self.current_block_number += 1
+        self.current_block_number += self.child_block_interval
         self.current_block = Block()
 
     def get_transaction(self, blknum, txindex):

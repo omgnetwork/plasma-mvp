@@ -32,6 +32,6 @@ setup(
         'eth-utils==0.7.3'
     ],
     entry_points={
-        'console_scripts': ["omg=plasma.cli:main"],
+        'console_scripts': ["omg=plasma.cli:cli"],
     }
 )
