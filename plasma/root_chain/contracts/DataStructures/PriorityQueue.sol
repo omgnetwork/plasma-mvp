@@ -76,6 +76,7 @@ contract PriorityQueue {
         delete heapList[currentSize];
         currentSize = currentSize.sub(1);
         percDown(1);
+        heapList.length = heapList.length.sub(1);
         return retVal;
     }
 
