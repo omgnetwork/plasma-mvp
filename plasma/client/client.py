@@ -12,8 +12,7 @@ class Client(object):
 
     def __init__(self, root_chain_provider=HTTPProvider('http://localhost:8545'), child_chain_url="http://localhost:8546/jsonrpc"):
         deployer = Deployer(root_chain_provider)
-        abi = json.load(open("contract_data/RootChain.json"))
-        self.root_chain = deployer.w3.eth.contract(abi, plasma_config['ROOT_CHAIN_CONTRACT_ADDRESS'], ContractFactoryClass=ConciseContract)
+        self.root_chain = deployer.get_contract_at_address("RootChain", plasma_config['ROOT_CHAIN_CONTRACT_ADDRESS'], concise=True)
         self.child_chain = ChildChainService(child_chain_url)
 
     def create_transaction(self, blknum1=0, txindex1=0, oindex1=0,

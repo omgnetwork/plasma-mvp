@@ -2,12 +2,13 @@ import json
 import os
 from ethereum.tools import tester as t
 from solc import compile_standard
-from web3.contract import ConciseContract
+from web3.contract import ConciseContract, Contract
 from web3 import Web3, HTTPProvider
 from plasma.config import plasma_config
 
-
 OWN_DIR = os.path.dirname(os.path.realpath(__file__))
+CONTRACTS_DIR = OWN_DIR + '/contracts'
+OUTPUT_DIR = 'contract_data'
 
 
 class Deployer(object):
@@ -15,50 +16,125 @@ class Deployer(object):
     def __init__(self, provider=HTTPProvider('http://localhost:8545')):
         self.w3 = Web3(provider)
 
-    def get_dirs(self, path):
-        abs_contract_path = os.path.realpath(os.path.join(OWN_DIR, 'contracts'))
-        extra_args = [[file, [os.path.realpath(os.path.join(r, file))]] for r, d, f in os.walk(abs_contract_path) for file in f]
-        contracts = {}
-        for contract in extra_args:
-            contracts[contract[0]] = {'urls': contract[1]}
-        path = '{}/{}'.format(abs_contract_path, path)
-        return path, contracts
+    @staticmethod
+    def get_solc_input():
+        """Walks the contract directory and returns a Solidity input dict
 
-    def compile_contract(self, path, args=()):
-        file_name = path.split('/')[1]
-        contract_name = file_name.split('.')[0]
-        path, contracts = self.get_dirs(path)
-        compiled_sol = compile_standard({'language': 'Solidity',
-                                         'sources': {**{path.split('/')[-1]: {'urls': [path]}}, **contracts}},  # Noqa E999
-                                        allow_paths=OWN_DIR + "/contracts")
-        abi = compiled_sol['contracts'][file_name][contract_name]['abi']
-        bytecode = compiled_sol['contracts'][file_name][contract_name]['evm']['bytecode']['object']
+        Learn more about Solidity input JSON here: https://goo.gl/7zKBvj
 
-        # Create the contract_data folder if it doesn't already exist
-        os.makedirs('contract_data', exist_ok=True)
+        Returns:
+            dict: A Solidity input JSON object as a dict
+        """
 
-        contract_file = open('contract_data/%s.json' % (file_name.split('.')[0]), "w+")
-        json.dump(abi, contract_file)
-        contract_file.close()
-        return abi, bytecode, contract_name
+        solc_input = {
+            'language': 'Solidity',
+            'sources': {
+                file_name: {
+                    'urls': [os.path.realpath(os.path.join(r, file_name))]
+                } for r, d, f in os.walk(CONTRACTS_DIR) for file_name in f
+            }
+        }
 
-    def create_contract(self, path, args=(), gas=4410000, sender=t.k0):
-        abi, bytecode, contract_name = self.compile_contract(path, args)
+        return solc_input
+
+    def compile_all(self):
+        """Compiles all of the contracts in the /contracts directory
+
+        Creates {contract name}.json files in /build that contain
+        the build output for each contract.
+        """
+
+        # Solidity input JSON
+        solc_input = self.get_solc_input()
+
+        # Compile the contracts
+        compilation_result = compile_standard(solc_input, allow_paths=CONTRACTS_DIR)
+
+        # Create the output folder if it doesn't already exist
+        os.makedirs(OUTPUT_DIR, exist_ok=True)
+
+        # Write the contract ABI to output files
+        compiled_contracts = compilation_result['contracts']
+        for contract_file in compiled_contracts:
+            for contract in compiled_contracts[contract_file]:
+                contract_name = contract.split('.')[0]
+                contract_data = compiled_contracts[contract_file][contract_name]
+
+                contract_data_path = OUTPUT_DIR + '/{0}.json'.format(contract_name)
+                with open(contract_data_path, "w+") as contract_data_file:
+                    json.dump(contract_data, contract_data_file)
+
+    @staticmethod
+    def get_contract_data(contract_name):
+        """Returns the contract data for a given contract
+
+        Args:
+            contract_name (str): Name of the contract to return.
+
+        Returns:
+            str, str: ABI and bytecode of the contract
+        """
+
+        contract_data_path = OUTPUT_DIR + '/{0}.json'.format(contract_name)
+        with open(contract_data_path, 'r') as contract_data_file:
+            contract_data = json.load(contract_data_file)
+
+        abi = contract_data['abi']
+        bytecode = contract_data['evm']['bytecode']['object']
+
+        return abi, bytecode
+
+
+    def deploy_contract(self, contract_name, gas=5000000, args=(), concise=True):
+        """Deploys a contract to the given Ethereum network using Web3
+
+        Args:
+            contract_name (str): Name of the contract to deploy. Must already be compiled.
+            provider (HTTPProvider): The Web3 provider to deploy with.
+            gas (int): Amount of gas to use when creating the contract.
+            args (obj): Any additional arguments to include with the contract creation.
+            concise (bool): Whether to return a Contract or ConciseContract instance.
+
+        Returns:
+            Contract: A Web3 contract instance.
+        """
+
+        abi, bytecode = self.get_contract_data(contract_name)
+
         contract = self.w3.eth.contract(abi=abi, bytecode=bytecode)
 
         # Get transaction hash from deployed contract
-        tx_hash = contract.deploy(transaction={'from': self.w3.eth.accounts[0], 'gas': gas}, args=args)
+        tx_hash = contract.deploy(transaction={
+            'from': self.w3.eth.accounts[0],
+            'gas': gas
+        }, args=args)
 
         # Get tx receipt to get contract address
         tx_receipt = self.w3.eth.getTransactionReceipt(tx_hash)
         contract_address = tx_receipt['contractAddress']
 
-        # Contract instance in concise mode
-        contract_instance = self.w3.eth.contract(abi, contract_address, ContractFactoryClass=ConciseContract)
-        print("Successfully deployed {} contract!".format(contract_name))
+        contract_factory_class = ConciseContract if concise else Contract
+        contract_instance = self.w3.eth.contract(abi, contract_address, ContractFactoryClass=contract_factory_class)
+
+        print("Successfully deployed {0} contract!".format(contract_name))
+
         return contract_instance
 
-    def get_contract(self, path):
-        file_name = path.split('/')[1]
-        abi = json.load(open('contract_data/%s.json' % (file_name.split('.')[0])))
-        return self.w3.eth.contract(abi, plasma_config['ROOT_CHAIN_CONTRACT_ADDRESS'])
+    def get_contract_at_address(self, contract_name, address, concise=True):
+        """Returns a Web3 instance of the given contract at the given address
+
+        Args:
+            contract_name (str): Name of the contract. Must already be compiled.
+            address (str): Address of the contract.
+            concise (bool): Whether to return a Contract or ConciseContract instance.
+
+        Returns:
+            Contract: A Web3 contract instance.
+        """
+
+        abi, bytecode = self.get_contract_data(contract_name)
+
+        contract_factory_class = ConciseContract if concise else Contract
+        contract_instance = self.w3.eth.contract(abi=abi, bytecode=bytecode, address=address, ContractFactoryClass=contract_factory_class)
+
+        return contract_instance
