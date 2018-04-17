@@ -1,6 +1,4 @@
-import json
 import rlp
-from web3.contract import ConciseContract
 from web3 import HTTPProvider
 from plasma.config import plasma_config
 from plasma.root_chain.deployer import Deployer

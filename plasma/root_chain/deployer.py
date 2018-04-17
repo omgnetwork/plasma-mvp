@@ -1,10 +1,8 @@
 import json
 import os
-from ethereum.tools import tester as t
 from solc import compile_standard
 from web3.contract import ConciseContract, Contract
 from web3 import Web3, HTTPProvider
-from plasma.config import plasma_config
 
 OWN_DIR = os.path.dirname(os.path.realpath(__file__))
 CONTRACTS_DIR = OWN_DIR + '/contracts'
@@ -83,7 +81,6 @@ class Deployer(object):
         bytecode = contract_data['evm']['bytecode']['object']
 
         return abi, bytecode
-
 
     def deploy_contract(self, contract_name, gas=5000000, args=(), concise=True):
         """Deploys a contract to the given Ethereum network using Web3
