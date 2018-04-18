@@ -3,7 +3,7 @@ import pytest
 
 @pytest.fixture
 def priority_queue(get_contract):
-    return get_contract('DataStructures/PriorityQueue.sol')
+    return get_contract('PriorityQueue')
 
 
 def test_priority_queue(t, priority_queue):

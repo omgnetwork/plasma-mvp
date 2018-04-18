@@ -7,7 +7,7 @@ from plasma.utils.utils import confirm_tx, get_deposit_hash
 
 @pytest.fixture
 def root_chain(t, get_contract):
-    contract = get_contract('RootChain/RootChain.sol')
+    contract = get_contract('RootChain')
     t.chain.mine()
     return contract
 

@@ -9,6 +9,10 @@ import os
 
 OWN_DIR = os.path.dirname(os.path.realpath(__file__))
 
+# Compile contracts once before tests start
+deployer = Deployer()
+deployer.compile_all()
+
 
 @pytest.fixture
 def t():
@@ -49,7 +53,7 @@ def u():
 @pytest.fixture
 def get_contract(t, u):
     def create_contract(path, args=(), sender=t.k0):
-        abi, hexcode, _ = Deployer().compile_contract(path, args)
+        abi, hexcode = deployer.get_contract_data(path)
         bytecode = u.decode_hex(hexcode)
         ct = ContractTranslator(abi)
         code = bytecode + (ct.encode_constructor_arguments(args) if args else b'')
