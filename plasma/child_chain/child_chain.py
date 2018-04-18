@@ -91,7 +91,7 @@ class ChildChain(object):
 
     def submit_block(self, block):
         block = rlp.decode(utils.decode_hex(block), Block)
-        if block.merkilize_transaction_set != self.current_block.merkilize_transaction_set:
+        if block.merklize_transaction_set() != self.current_block.merklize_transaction_set():
             raise InvalidBlockMerkleException('input block merkle mismatch with the current block')
 
         valid_signature = block.sig != b'\x00' * 65 and block.sender == self.authority
