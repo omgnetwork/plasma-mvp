@@ -146,8 +146,6 @@ contract RootChain {
         private
     {
         uint256 blknum = utxoPos / 1000000000;
-        uint256 txindex = (utxoPos % 1000000000) / 10000;
-        uint256 oindex = utxoPos - blknum * 1000000000 - txindex * 10000;
         uint256 priority = Math.max(childChain[blknum].created_at, block.timestamp - 1 weeks);
         priority = priority << 128 | utxoPos;
         require(amount > 0);

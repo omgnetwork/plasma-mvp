@@ -85,7 +85,7 @@ def test_submit_block(child_chain):
 
     old_block_number = child_chain.current_block_number
     child_chain.submit_block(block)
-    assert child_chain.current_block_number == old_block_number + 1
+    assert child_chain.current_block_number == old_block_number + child_chain.child_block_interval
 
 
 def test_submit_block_no_sig(child_chain):
@@ -122,11 +122,12 @@ def test_submit_block_invalid_tx_set(child_chain):
 
 
 def test_apply_deposit(child_chain):
+    deposit_block_number = 1
     sample_event = {
         'args': {
             'depositor': '0xfd02EcEE62797e75D86BCff1642EB0844afB28c7',
             'amount': 100,
-            'depositBlock': 1,
+            'depositBlock': deposit_block_number,
         },
         'event': 'Deposit',
         'logIndex': 0,
@@ -136,8 +137,7 @@ def test_apply_deposit(child_chain):
         'blockHash': '0x2550290dd333ea2876539b7ba474a804a9143b0d4ecb57b9d824f07ffd016747',
         'blockNumber': 1
     }
-    old_block_number = child_chain.current_block_number
     child_chain.apply_deposit(sample_event)
-    assert child_chain.current_block_number == old_block_number + 1
+
     # Deposit block only contains one transaction
-    assert len(child_chain.blocks[old_block_number].transaction_set) == 1
+    assert len(child_chain.blocks[deposit_block_number].transaction_set) == 1
