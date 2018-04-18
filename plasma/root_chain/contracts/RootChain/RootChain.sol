@@ -38,7 +38,6 @@ contract RootChain {
     /*
      *  Storage
      */
-    mapping(uint256 => childBlock) public childChain;
     mapping(uint256 => exit) public exits;
     PriorityQueue exitsQueue;
     address public authority;
