@@ -28,6 +28,7 @@ contract RootChain {
         uint256 indexed depositBLock,
         uint256 amount
     );
+
     event ExitStarted(
         address indexed exitor,
         uint256 indexed utxoPos,
@@ -164,8 +165,9 @@ contract RootChain {
     function addExitToQueue(uint256 utxoPos, address exitor, uint256 amount, uint256 created_at)
         private
     {
-        uint256 priority = Math.max(created_at, block.timestamp - 1 weeks);
-        priority = priority << 128 | utxoPos;
+        uint256 blknum = utxoPos / 1000000000;
+        uint256 exitable_at = Math.max(created_at + 2 weeks, block.timestamp + 1 weeks);
+        uint256 priority = exitable_at << 128 | utxoPos;
         require(amount > 0);
         require(exits[utxoPos].amount == 0);
         exitsQueue.insert(priority);
@@ -205,19 +207,18 @@ contract RootChain {
     function finalizeExits()
         public
     {
-        uint256 twoWeekOldTimestamp = block.timestamp.sub(2 weeks);
         uint256 utxoPos;
-        uint256 created_at;
-        (utxoPos, created_at) = getNextExit();
+        uint256 exitable_at;
+        (utxoPos, exitable_at) = getNextExit();
         exit memory currentExit = exits[utxoPos];
-        while (created_at < twoWeekOldTimestamp) {
+        while (exitable_at < block.timestamp && exitsQueue.currentSize() > 0) {
             currentExit = exits[utxoPos];
             currentExit.owner.transfer(currentExit.amount);
             exitsQueue.delMin();
             delete exits[utxoPos].owner;
 
             if (exitsQueue.currentSize() > 0) {
-                (utxoPos, created_at) = getNextExit();
+                (utxoPos, exitable_at) = getNextExit();
             } else {
                 return;
             }
@@ -267,7 +268,7 @@ contract RootChain {
     {
         uint256 priority = exitsQueue.getMin();
         uint256 utxoPos = uint256(uint128(priority));
-        uint256 created_at = priority >> 128;
-        return (utxoPos, created_at);
+        uint256 exitable_at = priority >> 128;
+        return (utxoPos, exitable_at);
     }
 }
