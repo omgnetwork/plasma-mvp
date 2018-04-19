@@ -192,12 +192,17 @@ contract RootChain {
         uint256 created_at;
         (utxoPos, created_at) = getNextExit();
         exit memory currentExit = exits[utxoPos];
-        while (created_at < twoWeekOldTimestamp && exitsQueue.currentSize() > 0) {
+        while (created_at < twoWeekOldTimestamp) {
             currentExit = exits[utxoPos];
             currentExit.owner.transfer(currentExit.amount);
             exitsQueue.delMin();
             delete exits[utxoPos].owner;
-            (utxoPos, created_at) = getNextExit();
+
+            if (exitsQueue.currentSize() > 0) {
+                (utxoPos, created_at) = getNextExit();
+            } else {
+                return;
+            }
         }
     }
 
