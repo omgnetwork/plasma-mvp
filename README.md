@@ -238,7 +238,7 @@ omg submitblock 3bb369fecdc16b93b99514d8ed9c2e87c5824cf4a6a98d2e8e91b7dd0c063304
 5. Withdraw the original deposit (this is a double spend!):
 
 ```
-withdrawdeposit 0xfd02ecee62797e75d86bcff1642eb0844afb28c7 1 100
+omg withdrawdeposit 0xfd02ecee62797e75d86bcff1642eb0844afb28c7 1 100
 ```
 
 Note: The functionality to challenge double spends from the cli is still being worked on.
