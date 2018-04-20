@@ -1,9 +1,7 @@
 import click
-import rlp
 from ethereum import utils
 from plasma.utils.utils import confirm_tx
 from plasma.client.client import Client
-from plasma.child_chain.block import Block
 from plasma.child_chain.transaction import Transaction
 
 
@@ -76,9 +74,8 @@ def sendtx(client,
 @click.argument('key', required=True)
 @click.pass_obj
 def submitblock(client, key):
-    # Get the current block and decode it
-    encoded_block = client.get_current_block()
-    block = rlp.decode(utils.decode_hex(encoded_block), Block)
+    # Get the current block, already decoded by client
+    block = client.get_current_block()
 
     # Sign the block
     block.make_mutable()
@@ -99,9 +96,8 @@ def submitblock(client, key):
 def withdraw(client,
              blknum, txindex, oindex,
              key1, key2):
-    # Get the transaction's block and decode it
-    encoded_block = client.get_block(blknum)
-    block = rlp.decode(utils.decode_hex(encoded_block), Block)
+    # Get the transaction's block, already decoded by client
+    block = client.get_block(blknum)
 
     # Create a Merkle proof
     tx = block.transaction_set[txindex]

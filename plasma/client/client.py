@@ -1,5 +1,7 @@
 import rlp
+from ethereum import utils
 from web3 import HTTPProvider
+from plasma.child_chain.block import Block
 from plasma.config import plasma_config
 from plasma.root_chain.deployer import Deployer
 from plasma.child_chain.transaction import Transaction, UnsignedTransaction
@@ -51,10 +53,12 @@ class Client(object):
         return self.child_chain.get_transaction(blknum, txindex)
 
     def get_current_block(self):
-        return self.child_chain.get_current_block()
+        encoded_block = self.child_chain.get_current_block()
+        return rlp.decode(utils.decode_hex(encoded_block), Block)
 
     def get_block(self, blknum):
-        return self.child_chain.get_block(blknum)
+        encoded_block = self.child_chain.get_block(blknum)
+        return rlp.decode(utils.decode_hex(encoded_block), Block)
 
     def get_current_block_num(self):
         return self.child_chain.get_current_block_num()
