@@ -37,14 +37,17 @@ class Client(object):
         self.root_chain.deposit(transact={'from': owner, 'value': amount})
 
     def apply_transaction(self, transaction):
-        self.child_chain.apply_transaction(transaction)
+        encoded_transaction = rlp.encode(transaction, Transaction).hex()
+        self.child_chain.apply_transaction(encoded_transaction)
 
     def submit_block(self, block):
-        self.child_chain.submit_block(block)
+        encoded_block = rlp.encode(block, Block).hex()
+        self.child_chain.submit_block(encoded_block)
 
     def withdraw(self, blknum, txindex, oindex, tx, proof, sigs):
         utxo_pos = blknum * 1000000000 + txindex * 10000 + oindex * 1
-        self.root_chain.startExit(utxo_pos, rlp.encode(tx, UnsignedTransaction), proof, sigs, transact={'from': '0x' + tx.newowner1.hex()})
+        encoded_transaction = rlp.encode(tx, UnsignedTransaction)
+        self.root_chain.startExit(utxo_pos, encoded_transaction, proof, sigs, transact={'from': '0x' + tx.newowner1.hex()})
 
     def withdraw_deposit(self, owner, deposit_pos, amount):
         self.root_chain.startDepositExit(deposit_pos, amount, transact={'from': owner})
