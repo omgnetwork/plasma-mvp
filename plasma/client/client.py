@@ -53,7 +53,8 @@ class Client(object):
         self.root_chain.startDepositExit(deposit_pos, amount, transact={'from': owner})
 
     def get_transaction(self, blknum, txindex):
-        return self.child_chain.get_transaction(blknum, txindex)
+        encoded_transaction = self.child_chain.get_transaction(blknum, txindex)
+        return rlp.decode(utils.decode_hex(encoded_transaction), Transaction)
 
     def get_current_block(self):
         encoded_block = self.child_chain.get_current_block()
