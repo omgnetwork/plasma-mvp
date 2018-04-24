@@ -26,8 +26,8 @@ def child_chain():
     child_chain = ChildChain(AUTHORITY, Mock())
 
     # Create some valid transations
-    tx1 = Transaction(0, 0, 0, 0, 0, 0, newowner1, amount1, b'\x00' * 20, 0, 0)
-    tx2 = Transaction(0, 0, 0, 0, 0, 0, newowner1, amount1, b'\x00' * 20, 0, 0)
+    tx1 = Transaction(0, 0, 0, 0, 0, 0, newowner1, amount1, b'\x00' * 20, 0)
+    tx2 = Transaction(0, 0, 0, 0, 0, 0, newowner1, amount1, b'\x00' * 20, 0)
 
     # Create a block with those transactions
     child_chain.blocks[1] = Block([tx1, tx2])
@@ -36,7 +36,7 @@ def child_chain():
 
 
 def test_send_tx_with_sig(child_chain):
-    tx3 = Transaction(1, 0, 0, 1, 1, 0, newowner1, amount2, b'\x00' * 20, 0, 0)
+    tx3 = Transaction(1, 0, 0, 1, 1, 0, newowner1, amount2, b'\x00' * 20, 0)
 
     # Sign the transaction
     tx3.sign1(tx_key)
@@ -46,14 +46,14 @@ def test_send_tx_with_sig(child_chain):
 
 
 def test_send_tx_no_sig(child_chain):
-    tx3 = Transaction(1, 0, 0, 1, 1, 0, newowner1, amount2, b'\x00' * 20, 0, 0)
+    tx3 = Transaction(1, 0, 0, 1, 1, 0, newowner1, amount2, b'\x00' * 20, 0)
 
     with pytest.raises(InvalidTxSignatureException):
         child_chain.apply_transaction(rlp.encode(tx3).hex())
 
 
 def test_send_tx_invalid_sig(child_chain):
-    tx3 = Transaction(1, 0, 0, 1, 1, 0, newowner1, amount2, b'\x00' * 20, 0, 0)
+    tx3 = Transaction(1, 0, 0, 1, 1, 0, newowner1, amount2, b'\x00' * 20, 0)
 
     # Sign with an invalid key
     tx3.sign1(invalid_tx_key)
@@ -64,7 +64,7 @@ def test_send_tx_invalid_sig(child_chain):
 
 
 def test_send_tx_double_spend(child_chain):
-    tx3 = Transaction(1, 0, 0, 1, 1, 0, newowner1, amount2, b'\x00' * 20, 0, 0)
+    tx3 = Transaction(1, 0, 0, 1, 1, 0, newowner1, amount2, b'\x00' * 20, 0)
 
     tx3.sign1(tx_key)
     tx3.sign2(tx_key)
@@ -109,7 +109,7 @@ def test_submit_block_invalid_sig(child_chain):
 def test_submit_block_invalid_tx_set(child_chain):
     block = Block()
     block.transaction_set = child_chain.current_block.transaction_set[:]
-    unsubmitted_tx = Transaction(0, 0, 0, 0, 0, 0, newowner1, 1234, b'\x00' * 20, 0, 0)
+    unsubmitted_tx = Transaction(0, 0, 0, 0, 0, 0, newowner1, 1234, b'\x00' * 20, 0)
     # Add an arbitrary transaction that hasn't been correctly submitted
     block.transaction_set.append(unsubmitted_tx)
 

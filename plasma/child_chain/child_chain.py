@@ -54,7 +54,7 @@ class ChildChain(object):
     def validate_tx(self, tx):
         inputs = [(tx.blknum1, tx.txindex1, tx.oindex1), (tx.blknum2, tx.txindex2, tx.oindex2)]
 
-        output_amount = tx.amount1 + tx.amount2 + tx.fee
+        output_amount = tx.amount1 + tx.amount2
         input_amount = 0
 
         for (blknum, txindex, oindex) in inputs:
@@ -77,7 +77,7 @@ class ChildChain(object):
             if not valid_signature:
                 raise InvalidTxSignatureException('failed to validate tx')
 
-        if input_amount != output_amount:
+        if input_amount < output_amount:
             raise TxAmountMismatchException('failed to validate tx')
 
     def mark_utxo_spent(self, blknum, txindex, oindex):

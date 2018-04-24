@@ -6,14 +6,12 @@ def test_transaction(t):
     blknum2, txindex2, oindex2 = 2, 2, 1
     newowner1, amount1 = t.a1, 100
     newowner2, amount2 = t.a2, 150
-    fee = 5
     oldowner1, oldowner2 = t.a1, t.a2
     key1, key2 = t.k1, t.k2
     tx = Transaction(blknum1, txindex1, oindex1,
                      blknum2, txindex2, oindex2,
                      newowner1, amount1,
-                     newowner2, amount2,
-                     fee)
+                     newowner2, amount2)
     assert tx.blknum1 == blknum1
     assert tx.txindex1 == txindex1
     assert tx.oindex1 == oindex1
