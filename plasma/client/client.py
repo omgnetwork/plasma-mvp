@@ -37,12 +37,10 @@ class Client(object):
         self.root_chain.deposit(transact={'from': owner, 'value': amount})
 
     def apply_transaction(self, transaction):
-        encoded_transaction = rlp.encode(transaction, Transaction).hex()
-        self.child_chain.apply_transaction(encoded_transaction)
+        self.child_chain.apply_transaction(transaction)
 
     def submit_block(self, block):
-        encoded_block = rlp.encode(block, Block).hex()
-        self.child_chain.submit_block(encoded_block)
+        self.child_chain.submit_block(block)
 
     def withdraw(self, blknum, txindex, oindex, tx, proof, sigs):
         utxo_pos = blknum * 1000000000 + txindex * 10000 + oindex * 1

@@ -1,5 +1,8 @@
 import requests
+import rlp
 from plasma.child_chain.child_chain import ChildChain
+from plasma.child_chain.transaction import Transaction
+from plasma.child_chain.block import Block
 
 
 class ChildChainService(object):
@@ -19,10 +22,10 @@ class ChildChainService(object):
         return response["result"]
 
     def apply_transaction(self, transaction):
-        return self.send_request("apply_transaction", [transaction])
+        return self.send_request("apply_transaction", [rlp.encode(transaction, Transaction).hex()])
 
     def submit_block(self, block):
-        return self.send_request("submit_block", [block])
+        return self.send_request("submit_block", [rlp.encode(block, Block).hex()])
 
     def get_transaction(self, blknum, txindex):
         return self.send_request("get_transaction", [blknum, txindex])
