@@ -24,6 +24,10 @@ def confirm_tx(tx, root, key):
     return sign(u.sha3(tx.hash + root), key)
 
 
+def get_deposit_hash(owner, value):
+    return u.sha3(owner + b'\x00' * 31 + u.int_to_bytes(value))
+
+
 def sign(hash, key):
     vrs = u.ecsign(hash, key)
     rsv = vrs[1:] + vrs[:1]

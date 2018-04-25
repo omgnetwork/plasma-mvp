@@ -20,14 +20,10 @@ library Validate {
         bytes memory confSig1 = ByteUtils.slice(sigs, 130, 65);
         bytes32 confirmationHash = keccak256(txHash, rootHash);
 
-        if (blknum1 == 0 && blknum2 == 0) {
-            return msg.sender == ECRecovery.recover(confirmationHash, confSig1);
-        }
         bool check1 = true;
         bool check2 = true;
-        if (blknum1 > 0) {
-            check1 = ECRecovery.recover(txHash, sig1) == ECRecovery.recover(confirmationHash, confSig1);
-        } 
+
+        check1 = ECRecovery.recover(txHash, sig1) == ECRecovery.recover(confirmationHash, confSig1);
         if (blknum2 > 0) {
             bytes memory confSig2 = ByteUtils.slice(sigs, 195, 65);
             check2 = ECRecovery.recover(txHash, sig2) == ECRecovery.recover(confirmationHash, confSig2);

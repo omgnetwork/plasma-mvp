@@ -112,7 +112,6 @@ The fastest way to start playing with our Plasma MVP is by starting up `ganache-
 $ ganache-cli -m=plasma_mvp # Start ganache-cli
 $ make root-chain           # Deploy the root chain contract
 $ make child-chain          # Run our child chain and server
-$ omg start                 # Start the Plasma CLI
 ```
 
 ## CLI Documentation
@@ -140,16 +139,16 @@ Creates a deposit transaction and submits it to the child chain.
 #### Usage
 
 ```
-deposit <amount> <key>
+deposit <amount> <address>
 ```
 
 #### Example
 
 ```
-deposit 100 3bb369fecdc16b93b99514d8ed9c2e87c5824cf4a6a98d2e8e91b7dd0c063304
+deposit 100 0xfd02ecee62797e75d86bcff1642eb0844afb28c7
 ```
 
-### `send_tx`
+### `sendtx`
 
 #### Description
 
@@ -158,7 +157,7 @@ Creates a transaction and submits it to the child chain.
 #### Usage
 
 ```
-send_tx <blknum1> <tx_pos1> <utxo_pos1> <blknum2> <tx_pos2> <utxo_pos2> <newowner1> <amount1> <newowner2> <amount2> <fee> <key1> [<key2>]
+sendtx <blknum1> <txindex1> <oindex1> <blknum2> <txindex2> <oindex2> <newowner1> <amount1> <newowner2> <amount2> <fee> <key1> [<key2>]
 ```
 
 #### Example
@@ -167,7 +166,7 @@ send_tx <blknum1> <tx_pos1> <utxo_pos1> <blknum2> <tx_pos2> <utxo_pos2> <newowne
 send_tx 1 0 0 0 0 0 0xfd02ecee62797e75d86bcff1642eb0844afb28c7 50 0x4b3ec6c9dc67079e82152d6d55d8dd96a8e6aa26 45 5 3bb369fecdc16b93b99514d8ed9c2e87c5824cf4a6a98d2e8e91b7dd0c063304
 ```
 
-### `submit_block`
+### `submitblock`
 
 #### Description
 
@@ -176,13 +175,13 @@ Signs and submits the current block to the root contract.
 #### Usage
 
 ```
-submit_block <key>
+submitblock <key>
 ```
 
 #### Example
 
 ```
-submit_block 3bb369fecdc16b93b99514d8ed9c2e87c5824cf4a6a98d2e8e91b7dd0c063304
+submitblock 3bb369fecdc16b93b99514d8ed9c2e87c5824cf4a6a98d2e8e91b7dd0c063304
 ```
 
 ### `withdraw`
@@ -194,59 +193,52 @@ Creates an exit transaction for the given UTXO.
 #### Usage
 
 ```
-withdraw <blknum> <tx_pos> <utxo_pos> <key1> [<key2>]
+withdraw <blknum> <txindex> <oindex> <key1> [<key2>]
 ```
 
 #### Example
 
 ```
-withdraw 1 0 0 3bb369fecdc16b93b99514d8ed9c2e87c5824cf4a6a98d2e8e91b7dd0c063304
+withdraw 1000 0 0 3bb369fecdc16b93b99514d8ed9c2e87c5824cf4a6a98d2e8e91b7dd0c063304
 ```
 
-### `sync`
+### `withdrawdeposit`
 
 #### Description
 
-Writes any unsynced blocks to a local database.
+Withdraws from a deposit.
 
 #### Usage
 
 ```
-sync
+withdrawdeposit 0xfd02ecee62797e75d86bcff1642eb0844afb28c7 1 100
 ```
 
 ## CLI Example
 
 Let's play around a bit:
 
-1. Start the server and CLI up as per [Starting Plasma](#starting-plasma).
+1. Deploy the root chain contract and start the child chain as per [Starting Plasma](#starting-plasma).
 
-2. We'll start by depositing:
+2. Start by depositing:
 ```
-deposit 100 3bb369fecdc16b93b99514d8ed9c2e87c5824cf4a6a98d2e8e91b7dd0c063304
-```
-
-3. Then we'll send a tx:
-```
-send_tx 1 0 0 0 0 0 0xfd02ecee62797e75d86bcff1642eb0844afb28c7 50 0x4b3ec6c9dc67079e82152d6d55d8dd96a8e6aa26 45 5 3bb369fecdc16b93b99514d8ed9c2e87c5824cf4a6a98d2e8e91b7dd0c063304
+omg deposit 100 0xfd02ecee62797e75d86bcff1642eb0844afb28c7
 ```
 
-4.  Next we'll submit the block:
+3. Send a transaction:
 ```
-submit_block 3bb369fecdc16b93b99514d8ed9c2e87c5824cf4a6a98d2e8e91b7dd0c063304
+omg sendtx 1 0 0 0 0 0 0xfd02ecee62797e75d86bcff1642eb0844afb28c7 50 0x4b3ec6c9dc67079e82152d6d55d8dd96a8e6aa26 45 5 3bb369fecdc16b93b99514d8ed9c2e87c5824cf4a6a98d2e8e91b7dd0c063304
 ```
 
-5. Now we'll withdraw our original deposit (this is a double spend!):
+4.  Submit the block:
+```
+omg submitblock 3bb369fecdc16b93b99514d8ed9c2e87c5824cf4a6a98d2e8e91b7dd0c063304
+```
+
+5. Withdraw the original deposit (this is a double spend!):
 
 ```
-withdraw 1 0 0 3bb369fecdc16b93b99514d8ed9c2e87c5824cf4a6a98d2e8e91b7dd0c063304
+omg withdrawdeposit 0xfd02ecee62797e75d86bcff1642eb0844afb28c7 1 100
 ```
 
 Note: The functionality to challenge double spends from the cli is still being worked on.
-
-6. Now we'll sync with the child chain (the deposit and the block we just submitted) locally: 
-```
-sync
-```
-
-7. And finally we'll close the client with `Ctrl+C`.

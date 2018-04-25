@@ -4,7 +4,7 @@ init:
 .PHONY: help
 help:
 	@echo "root-chain" - starts the root chain
-	@echo "child-chain" - starts the child chain
+	@echo "child-chain"  starts the child chain
 	@echo "clean-build - remove build artifacts"
 	@echo "clean-pyc - remove Python file artifacts"
 	@echo "lint - check style with flake8"

@@ -15,7 +15,8 @@ class ChildChain(object):
         self.root_chain = root_chain
         self.authority = authority
         self.blocks = {}
-        self.current_block_number = 1
+        self.child_block_interval = 1000
+        self.current_block_number = self.child_block_interval
         self.current_block = Block()
         self.pending_transactions = []
 
@@ -24,14 +25,19 @@ class ChildChain(object):
         deposit_filter.watch(self.apply_deposit)
 
     def apply_deposit(self, event):
-        newowner1 = event['args']['depositor']
-        amount1 = event['args']['amount']
-        deposit_tx = Transaction(0, 0, 0, 0, 0, 0,
-                                 newowner1, amount1, b'\x00' * 20, 0, 0)
+        event_args = event['args']
+        depositor = event_args['depositor']
+        amount = event_args['amount']
+        blknum = event_args['depositBlock']
+
+        deposit_tx = Transaction(blknum, 0, 0,
+                                 0, 0, 0,
+                                 depositor, amount,
+                                 b'\x00' * 20, 0,
+                                 0)
         deposit_block = Block([deposit_tx])
-        # Add block validation
-        self.blocks[self.current_block_number] = deposit_block
-        self.current_block_number += 1
+
+        self.blocks[blknum] = deposit_block
 
     def apply_transaction(self, transaction):
         tx = rlp.decode(utils.decode_hex(transaction), Transaction)
@@ -48,10 +54,11 @@ class ChildChain(object):
     def validate_tx(self, tx):
         inputs = [(tx.blknum1, tx.txindex1, tx.oindex1), (tx.blknum2, tx.txindex2, tx.oindex2)]
 
-        output_amount = tx.amount1 + tx.amount2 + tx.fee
+        output_amount = tx.amount1 + tx.amount2
         input_amount = 0
 
         for (blknum, txindex, oindex) in inputs:
+            # Assume empty inputs and are valid
             if blknum == 0:
                 continue
 
@@ -70,7 +77,7 @@ class ChildChain(object):
             if not valid_signature:
                 raise InvalidTxSignatureException('failed to validate tx')
 
-        if input_amount != output_amount:
+        if input_amount < output_amount:
             raise TxAmountMismatchException('failed to validate tx')
 
     def mark_utxo_spent(self, blknum, txindex, oindex):
@@ -84,17 +91,17 @@ class ChildChain(object):
 
     def submit_block(self, block):
         block = rlp.decode(utils.decode_hex(block), Block)
-        if block.merkilize_transaction_set != self.current_block.merkilize_transaction_set:
+        if block.merklize_transaction_set() != self.current_block.merklize_transaction_set():
             raise InvalidBlockMerkleException('input block merkle mismatch with the current block')
 
         valid_signature = block.sig != b'\x00' * 65 and block.sender == self.authority
         if not valid_signature:
             raise InvalidBlockSignatureException('failed to submit block')
 
-        self.root_chain.transact({'from': '0x' + self.authority.hex()}).submitBlock(block.merkle.root, self.current_block_number)
+        self.root_chain.transact({'from': '0x' + self.authority.hex()}).submitBlock(block.merkle.root)
         # TODO: iterate through block and validate transactions
         self.blocks[self.current_block_number] = self.current_block
-        self.current_block_number += 1
+        self.current_block_number += self.child_block_interval
         self.current_block = Block()
 
     def get_transaction(self, blknum, txindex):

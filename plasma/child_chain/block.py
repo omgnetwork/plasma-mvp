@@ -29,8 +29,7 @@ class Block(rlp.Serializable):
     def sender(self):
         return get_sender(self.hash, self.sig)
 
-    @property
-    def merkilize_transaction_set(self):
+    def merklize_transaction_set(self):
         hashed_transaction_set = [transaction.merkle_hash for transaction in self.transaction_set]
         self.merkle = FixedMerkle(16, hashed_transaction_set, hashed=True)
         return self.merkle.root
