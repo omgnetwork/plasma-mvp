@@ -3,6 +3,7 @@ import rlp
 from plasma.child_chain.child_chain import ChildChain
 from plasma.child_chain.transaction import Transaction
 from plasma.child_chain.block import Block
+from .exceptions import ChildChainServiceError
 
 
 class ChildChainService(object):
@@ -20,7 +21,7 @@ class ChildChainService(object):
         }
         response = requests.post(self.url, json=payload).json()
         if 'error' in response.keys():
-            raise Exception(response["error"])
+            raise ChildChainServiceError(response["error"])
 
         return response["result"]
 

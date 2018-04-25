@@ -3,6 +3,7 @@ from ethereum import utils
 from plasma.utils.utils import confirm_tx
 from plasma.client.client import Client
 from plasma.child_chain.transaction import Transaction
+from plasma.client.exceptions import ChildChainServiceError
 
 
 CONTEXT_SETTINGS = dict(
@@ -69,7 +70,7 @@ def sendtx(client,
     try:
         client.apply_transaction(tx)
         print("Sent transaction")
-    except Exception as err:
+    except ChildChainServiceError as err:
         print ("Error:", err)
         print ("additional details can be found from the child chain's server output")
 
