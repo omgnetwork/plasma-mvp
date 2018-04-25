@@ -66,8 +66,12 @@ def sendtx(client,
     if key2:
         tx.sign2(utils.normalize_key(key2))
 
-    client.apply_transaction(tx)
-    print("Sent transaction")
+    try:
+        client.apply_transaction(tx)
+        print("Sent transaction")
+    except Exception as err:
+        print ("Error:", err)
+        print ("additional details can be found from the child chain's server output")
 
 
 @cli.command()

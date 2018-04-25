@@ -19,6 +19,9 @@ class ChildChainService(object):
             "id": 0,
         }
         response = requests.post(self.url, json=payload).json()
+        if 'error' in response.keys():
+            raise Exception(response["error"])
+
         return response["result"]
 
     def apply_transaction(self, transaction):
