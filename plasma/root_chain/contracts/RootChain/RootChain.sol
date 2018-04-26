@@ -23,8 +23,15 @@ contract RootChain {
     /*
      * Events
      */
-    event Deposit(address depositor, uint256 amount, uint256 depositBlock);
-    event Exit(address exitor, uint256 utxoPos);
+    event Deposit(
+        address indexed depositor,
+        uint256 amount,
+        uint256 depositBlock
+    );
+    event Exit(
+        address indexed exitor,
+        uint256 utxoPos
+    );
 
     /*
      *  Storage
