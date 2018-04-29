@@ -12,9 +12,9 @@ def test_deposit(test_lang):
 
     test_lang.parse(test_lang_string)
 
-    owner = test_lang.accounts['Owner1']
-    tx = Transaction(0, 0, 0, 0, 0, 0, owner['address'], 100, NULL_ADDRESS, 0, 0)
-    deposit_hash = bytes.fromhex(Web3.soliditySha3(['address', 'uint256'], [owner['address'], 100])[2:])
+    owner1 = test_lang.accounts['Owner1']
+    tx = Transaction(0, 0, 0, 0, 0, 0, owner1['address'], 100, NULL_ADDRESS, 0, 0)
+    deposit_hash = bytes.fromhex(Web3.soliditySha3(['address', 'uint256'], [owner1['address'], 100])[2:])
 
     assert test_lang.transactions['Deposit1']['tx'].hash == tx.hash
 
@@ -27,7 +27,7 @@ def test_deposit(test_lang):
 def test_transfer(test_lang):
     test_lang_string = '''
         Deposit1[Owner1,100]
-        Transfer1[Deposit1,Owner2,100,Owner1,null,null,null,null]
+        Transfer1[Deposit1,Owner2,100,Owner1]
     '''
 
     test_lang.parse(test_lang_string)
@@ -46,22 +46,22 @@ def test_transfer(test_lang):
 def test_submit_block(test_lang):
     test_lang_string = '''
         Deposit1[Owner1,100]
-        Transfer1[Deposit1,Owner2,100,Owner1,null,null,null,null]
-        SubmitBlock[]
+        Transfer1[Deposit1,Owner2,100,Owner1]
+        SubmitBlock[OPERATOR]
     '''
 
     test_lang.parse(test_lang_string)
 
     blknum = 1000
-    assert test_lang.root_chain.call().getChildChain(blknum)[0].encode('latin-1') == test_lang.child_chain.blocks[blknum].merkilize_transaction_set
+    assert test_lang.root_chain.call().getChildChain(blknum)[0].encode('latin-1') == test_lang.child_chain.blocks[blknum].merklize_transaction_set()
 
 
 def test_confirm(test_lang):
     test_lang_string = '''
         Deposit1[Owner1,100]
-        Transfer1[Deposit1,Owner2,100,Owner1,null,null,null,null]
-        SubmitBlock[]
-        Confirm[Transfer1,Owner1,null]
+        Transfer1[Deposit1,Owner2,100,Owner1]
+        SubmitBlock[OPERATOR]
+        Confirm[Transfer1,Owner1]
     '''
 
     test_lang.parse(test_lang_string)
@@ -72,9 +72,9 @@ def test_confirm(test_lang):
 def test_withdraw_transfer(test_lang):
     test_lang_string = '''
         Deposit1[Owner1,100]
-        Transfer1[Deposit1,Owner2,100,Owner1,null,null,null,null]
-        SubmitBlock[]
-        Confirm[Transfer1,Owner1,null]
+        Transfer1[Deposit1,Owner2,100,Owner1]
+        SubmitBlock[OPERATOR]
+        Confirm[Transfer1,Owner1]
         Withdraw[Transfer1.0,Owner2]
     '''
 

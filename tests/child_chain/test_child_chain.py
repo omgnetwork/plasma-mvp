@@ -18,7 +18,7 @@ def test_apply_deposit(test_lang):
 def test_send_tx_with_sig(test_lang):
     test_lang_string = '''
         Deposit1[Owner1,100]
-        Transfer1[Deposit1,Owner2,100,Owner1,null,null,null,null]
+        Transfer1[Deposit1,Owner2,100,Owner1]
     '''
 
     test_lang.parse(test_lang_string)
@@ -27,7 +27,7 @@ def test_send_tx_with_sig(test_lang):
 def test_send_tx_no_sig(test_lang):
     test_lang_string = '''
         Deposit1[Owner1,100]
-        Transfer1[Deposit1,Owner2,100,null,null,null,null,null]
+        Transfer1[Deposit1,Owner2,100]
     '''
 
     with pytest.raises(InvalidTxSignatureException):
@@ -37,7 +37,7 @@ def test_send_tx_no_sig(test_lang):
 def test_send_tx_invalid_sig(test_lang):
     test_lang_string = '''
         Deposit1[Owner1,100]
-        Transfer1[Deposit1,Owner2,100,Owner3,null,null,null,null]
+        Transfer1[Deposit1,Owner2,100,Owner3]
     '''
 
     with pytest.raises(InvalidTxSignatureException):
@@ -47,11 +47,11 @@ def test_send_tx_invalid_sig(test_lang):
 def test_send_tx_double_spend(test_lang):
     test_lang_string1 = '''
         Deposit1[Owner1,100]
-        Transfer1[Deposit1,Owner2,100,Owner1,null,null,null,null]
+        Transfer1[Deposit1,Owner2,100,Owner1]
     '''
 
     test_lang_string2 = '''
-        Transfer2[Deposit1,Owner2,100,Owner1,null,null,null,null]
+        Transfer2[Deposit1,Owner2,100,Owner1]
     '''
 
     test_lang.parse(test_lang_string1)
@@ -63,7 +63,7 @@ def test_send_tx_double_spend(test_lang):
 
 def test_submit_block(test_lang):
     test_lang_string = '''
-        SubmitBlock[]
+        SubmitBlock[OPERATOR]
     '''
 
     old_block_number = test_lang.child_chain.current_block_number

@@ -17,16 +17,15 @@ class Transaction(rlp.Serializable):
         ('amount1', big_endian_int),
         ('newowner2', utils.address),
         ('amount2', big_endian_int),
-        ('fee', big_endian_int),
         ('sig1', binary),
         ('sig2', binary),
     ]
 
-    def __init__(self, blknum1, txindex1, oindex1,
+    def __init__(self,
+                 blknum1, txindex1, oindex1,
                  blknum2, txindex2, oindex2,
                  newowner1, amount1,
                  newowner2, amount2,
-                 fee,
                  sig1=b'\x00' * 65,
                  sig2=b'\x00' * 65):
         # Input 1
@@ -47,9 +46,6 @@ class Transaction(rlp.Serializable):
 
         self.newowner2 = utils.normalize_address(newowner2)
         self.amount2 = amount2
-
-        # Fee
-        self.fee = fee
 
         self.confirmation1 = None
         self.confirmation2 = None

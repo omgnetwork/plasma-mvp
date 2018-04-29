@@ -1,56 +1,14 @@
 import re
 import time
 import rlp
-from ethereum import utils as u
+from inspect import signature
 from web3 import Web3, HTTPProvider
 from plasma.root_chain.deployer import Deployer
 from plasma.child_chain.child_chain import ChildChain
 from plasma.child_chain.transaction import Transaction, UnsignedTransaction
 from plasma.utils.merkle.fixed_merkle import FixedMerkle
 from plasma.utils.utils import confirm_tx
-
-AUTHORITY = b'\xfd\x02\xec\xeeby~u\xd8k\xcf\xf1d.\xb0\x84J\xfb(\xc7'
-AUTHORITY_KEY = u.normalize_key(b'3bb369fecdc16b93b99514d8ed9c2e87c5824cf4a6a98d2e8e91b7dd0c063304')
-
-ACCOUNTS = [
-    {
-        'address': '0x4b3ec6c9dc67079e82152d6d55d8dd96a8e6aa26',
-        'key': u.normalize_key(b'b937b2c6a606edf1a4d671485f0fa61dcc5102e1ebca392f5a8140b23a8ac04f')
-    },
-    {
-        'address': '0xda20a48913f9031337a5e32325f743e8536860e2',
-        'key': u.normalize_key(b'999ba3f77899ba4802af5109221c64a9238a6772718f287a8bd3ca3d1b68187f')
-    },
-    {
-        'address': '0xf6d8982698dcc46b8e96e34bc2bf3c97302b9923',
-        'key': u.normalize_key(b'ef4134d11aa32bcbd314d3cd94b7a5f93bea2b809007d4307a4393cce0285652')
-    },
-    {
-        'address': '0x2d75468c0cafa9d41fc5bf3cca6c292a3cc03d94',
-        'key': u.normalize_key(b'25c8620e5bd51caed1d2ff5e79b43dfbef17d0b4eb38d0db8d834da9de5a6120')
-    },
-    {
-        'address': '0xf05b4b746aad830062505ad0cfd3619917484e46',
-        'key': u.normalize_key(b'e3d66a68573a85734e80d3de47b82e13374c2a026f219cb766978510a8b8697e')
-    },  
-    {
-        'address': '0x81a9bfa79598f1536b4918a6556e9855c5e141d5',
-        'key': u.normalize_key(b'81e244b79cef097c187d9299a2fc3a680cf1d2637fb7463ca7aa70445a0a0410')
-    },
-    {
-        'address': '0xa669513ad878cc0891d8c305cc21903068a9afe9',
-        'key': u.normalize_key(b'ebcaa9c519c2aaa27e7c1656451b9c72167cadf0fd30bc4bcc3bda6d6fcbd507')
-    },
-    {
-        'address': '0xc3aae3a9be258bd485105ef81eb0d5b677ee26fd',
-        'key': u.normalize_key(b'b991543d47829ea4f296d182dfa7088303fb3f04dd0c95a5cb7132397e4a008d')
-    },
-    {
-        'address': '0xb9db71c2d02a1b30dfe29c90738b3228dd9d2ec2',
-        'key': u.normalize_key(b'484eb2f0465e7357575f05bf5af5e77cb4b678fb774dd127d9d99e3d31c5f80e')
-    }
-]
-NULL_ADDRESS = b'\x00' * 20
+from .constants import AUTHORITY, ACCOUNTS, NULL_ADDRESS
 
 class TestingLanguage(object):
     
@@ -58,12 +16,11 @@ class TestingLanguage(object):
 
     def __init__(self):
         self.w3 = Web3(HTTPProvider('http://localhost:8545'))
-        self.root_chain = Deployer().create_contract('RootChain/RootChain.sol', concise=False)
-        self.child_chain = ChildChain(AUTHORITY, self.root_chain)
+        self.root_chain = Deployer().deploy_contract('RootChain', concise=False)
+        self.child_chain = ChildChain(bytes.fromhex(AUTHORITY['address'][2:]), self.root_chain)
 
         self.transactions = dict()
         self.accounts = dict()
-
         self.handlers = dict()
 
         self.register_handler('Deposit', self.deposit)
@@ -76,7 +33,11 @@ class TestingLanguage(object):
         self.handlers[token] = function
 
     def get_account(self, account_name):
-        account = self.accounts.get(account_name, None)
+        if account_name == 'OPERATOR':
+            account = AUTHORITY
+        else:
+            account = self.accounts.get(account_name, None)
+
         if account is None:
             account = ACCOUNTS[len(self.accounts)]
             self.accounts[account_name] = account
@@ -97,8 +58,7 @@ class TestingLanguage(object):
         tx = Transaction(0, 0, 0,
                          0, 0, 0,
                          account['address'], amount,
-                         NULL_ADDRESS, 0,
-                         0)
+                         NULL_ADDRESS, 0)
 
         self.transactions[deposit_name] = {
             'tx': tx,
@@ -129,8 +89,7 @@ class TestingLanguage(object):
         tx = Transaction(blknum1, txindex1, oindex1,
                          blknum2, txindex2, oindex2,
                          newowner_address1, amount1,
-                         newowner_address2, amount2,
-                         0)
+                         newowner_address2, amount2)
 
         key1 = self.get_account(signatory1)['key']
         tx.sign1(key1)
@@ -148,12 +107,9 @@ class TestingLanguage(object):
             'confirm_sigs': b''
         }
 
-    def submit_block(self, signatory=AUTHORITY):
-        signing_key = None
-        if signatory == AUTHORITY:
-            signing_key = AUTHORITY_KEY
-        elif signatory != None:
-            signing_key = self.get_account(signatory)['key']
+    def submit_block(self, signatory):
+        signing_key = self.get_account(signatory)['key']
+        print(signing_key)
 
         block = self.child_chain.current_block
         block.make_mutable()
@@ -211,7 +167,13 @@ class TestingLanguage(object):
     def parse(self, test_lang_string):
         for token in test_lang_string.split():
             handler, arguments = self.parse_token(token)
-            self.handlers[handler](*arguments)
+            fn = self.handlers[handler]
+    
+            # Determine how many arguments are required and pad with None
+            required_args = len(signature(fn).parameters)
+            arguments += [None] * (required_args - len(arguments))
+
+            fn(*arguments)
 
     def parse_token(self, token):
         handler, method_id, arguments = re.match(self.TOKEN_PATTERN, token.strip()).groups()
@@ -222,6 +184,7 @@ class TestingLanguage(object):
         if method_name is not None:
             parsed_arguments.insert(0, method_name)
 
+        # Anything explicitly marked as "null" converted to None
         parsed_arguments = [None if arg == 'null' else arg for arg in parsed_arguments]
 
         return handler, parsed_arguments
