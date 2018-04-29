@@ -43,6 +43,8 @@ def test_priority_queue_delete_all(priority_queue):
     assert priority_queue.delMin() == 2
     assert priority_queue.delMin() == 5
     assert priority_queue.currentSize() == 0
+    with pytest.raises(TransactionFailed):
+        priority_queue.getMin()
 
 
 def test_priority_queue_delete_then_insert(priority_queue):

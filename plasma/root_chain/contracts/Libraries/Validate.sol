@@ -9,7 +9,7 @@ import "./ECRecovery.sol";
  */
 
 library Validate {
-    function checkSigs(bytes32 txHash, bytes32 rootHash, uint256 blknum1, uint256 blknum2, bytes sigs)
+    function checkSigs(bytes32 txHash, bytes32 rootHash, uint256 blknum2, bytes sigs)
         internal
         view
         returns (bool)

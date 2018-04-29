@@ -2,7 +2,7 @@ pragma solidity 0.4.18;
 
 import 'SafeMath.sol';
 import 'Math.sol';
-import 'RLP.sol';
+import 'PlasmaRLP.sol';
 import 'Merkle.sol';
 import 'Validate.sol';
 import 'PriorityQueue.sol';
@@ -15,10 +15,8 @@ import 'PriorityQueue.sol';
 
 contract RootChain {
     using SafeMath for uint256;
-    using RLP for bytes;
-    using RLP for RLP.RLPItem;
-    using RLP for RLP.Iterator;
     using Merkle for bytes32;
+    using PlasmaRLP for bytes;
 
     /*
      * Events
@@ -146,19 +144,17 @@ contract RootChain {
     function startExit(uint256 utxoPos, bytes txBytes, bytes proof, bytes sigs)
         public
     {
-        var txList = txBytes.toRLPItem().toList(11); 
         uint256 blknum = utxoPos / 1000000000;
         uint256 txindex = (utxoPos % 1000000000) / 10000;
         uint256 oindex = utxoPos - blknum * 1000000000 - txindex * 10000; 
-        uint256 amount = txList[7 + 2 * oindex].toUint();
-        address exitor = txList[6 + 2 * oindex].toAddress(); 
+        var exitingTx = txBytes.createExitingTx(11, oindex);
         
-        require(msg.sender == exitor);
+        require(msg.sender == exitingTx.exitor);
         bytes32 root = childChain[blknum].root; 
         bytes32 merkleHash = keccak256(keccak256(txBytes), ByteUtils.slice(sigs, 0, 130));
-        require(Validate.checkSigs(keccak256(txBytes), root, txList[0].toUint(), txList[3].toUint(), sigs));
+        require(Validate.checkSigs(keccak256(txBytes), root, exitingTx.inputCount, sigs));
         require(merkleHash.checkMembership(txindex, root, proof));
-        addExitToQueue(utxoPos, exitor, amount, childChain[blknum].created_at);
+        addExitToQueue(utxoPos, exitingTx.exitor, exitingTx.amount, childChain[blknum].created_at);
     }
 
     // Priority is a given utxos position in the exit priority queue
@@ -188,7 +184,7 @@ contract RootChain {
     function challengeExit(uint256 cUtxoPos, uint256 eUtxoIndex, bytes txBytes, bytes proof, bytes sigs, bytes confirmationSig)
         public
     {
-        uint256 eUtxoPos = getUtxoPos(txBytes, eUtxoIndex);
+        uint256 eUtxoPos = txBytes.getUtxoPos(11, eUtxoIndex);
         uint256 txindex = (cUtxoPos % 1000000000) / 10000;
         bytes32 root = childChain[cUtxoPos / 1000000000].root;
         var txHash = keccak256(txBytes);
@@ -250,15 +246,6 @@ contract RootChain {
         returns (address, uint256)
     {
         return (exits[utxoPos].owner, exits[utxoPos].amount);
-    }
-
-    function getUtxoPos(bytes txBytes, uint256 oIndex)
-        public
-        returns (uint256)
-    {
-        var txList = txBytes.toRLPItem().toList(11);
-        uint256 oIndexShift = oIndex * 3;
-        return txList[0 + oIndexShift].toUint() + txList[1 + oIndexShift].toUint() + txList[2 + oIndexShift].toUint();
     }
 
     function getNextExit()
