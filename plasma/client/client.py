@@ -1,5 +1,7 @@
 import rlp
+from ethereum import utils
 from web3 import HTTPProvider
+from plasma.child_chain.block import Block
 from plasma.config import plasma_config
 from plasma.root_chain.deployer import Deployer
 from plasma.child_chain.transaction import Transaction, UnsignedTransaction
@@ -42,19 +44,23 @@ class Client(object):
 
     def withdraw(self, blknum, txindex, oindex, tx, proof, sigs):
         utxo_pos = blknum * 1000000000 + txindex * 10000 + oindex * 1
-        self.root_chain.startExit(utxo_pos, rlp.encode(tx, UnsignedTransaction), proof, sigs, transact={'from': '0x' + tx.newowner1.hex()})
+        encoded_transaction = rlp.encode(tx, UnsignedTransaction)
+        self.root_chain.startExit(utxo_pos, encoded_transaction, proof, sigs, transact={'from': '0x' + tx.newowner1.hex()})
 
     def withdraw_deposit(self, owner, deposit_pos, amount):
         self.root_chain.startDepositExit(deposit_pos, amount, transact={'from': owner})
 
     def get_transaction(self, blknum, txindex):
-        return self.child_chain.get_transaction(blknum, txindex)
+        encoded_transaction = self.child_chain.get_transaction(blknum, txindex)
+        return rlp.decode(utils.decode_hex(encoded_transaction), Transaction)
 
     def get_current_block(self):
-        return self.child_chain.get_current_block()
+        encoded_block = self.child_chain.get_current_block()
+        return rlp.decode(utils.decode_hex(encoded_block), Block)
 
     def get_block(self, blknum):
-        return self.child_chain.get_block(blknum)
+        encoded_block = self.child_chain.get_block(blknum)
+        return rlp.decode(utils.decode_hex(encoded_block), Block)
 
     def get_current_block_num(self):
         return self.child_chain.get_current_block_num()
