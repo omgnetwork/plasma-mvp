@@ -88,7 +88,6 @@ def submitblock(client, key):
 
     # Get the current block, already decoded by client
     block = client_call(client.get_current_block)
-    # block = client.get_current_block()
 
     # Sign the block
     block.make_mutable()
@@ -110,7 +109,7 @@ def withdraw(client,
              key1, key2):
 
     # Get the transaction's block, already decoded by client
-    block = client_call(client.get_block(blknum))
+    block = client_call(client.get_block, [blknum])
 
     # Create a Merkle proof
     tx = block.transaction_set[txindex]
