@@ -87,7 +87,8 @@ def sendtx(client,
 def submitblock(client, key):
 
     # Get the current block, already decoded by client
-    block = client_call(client.get_current_block())
+    block = client_call(client.get_current_block)
+    # block = client.get_current_block()
 
     # Sign the block
     block.make_mutable()
