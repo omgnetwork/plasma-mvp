@@ -4,6 +4,7 @@ import threading
 from web3 import Web3, HTTPProvider
 from hashlib import sha256
 
+
 class RootEventListener(object):
     """Listens to events on the root chain.
 
@@ -22,7 +23,7 @@ class RootEventListener(object):
         self.root_chain = root_chain
         self.w3 = w3
         self.finality = finality
-    
+
         self.seen_events = {}
         self.active_events = {}
         self.subscribers = {}
@@ -41,7 +42,7 @@ class RootEventListener(object):
         """
 
         self.subscribers[event_name] = event_handler
-        
+
     def __listen_for_event(self, event_name):
         """Registers an event as being watched for and starts a filter loop.
 
@@ -64,7 +65,7 @@ class RootEventListener(object):
 
     def stop_all(self):
         """Stops watching for all events
-        """ 
+        """
 
         for event in list(self.active_events):
             self.stop_listening_for_event(event)

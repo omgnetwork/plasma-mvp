@@ -165,4 +165,4 @@ def test_apply_exit(child_chain):
     child_chain.apply_exit(sample_event)
 
     # Transaction now marked spent
-    assert child_chain.blocks[blknum].transaction_set[txindex].spent1 == True
+    assert child_chain.blocks[blknum].transaction_set[txindex].spent1
