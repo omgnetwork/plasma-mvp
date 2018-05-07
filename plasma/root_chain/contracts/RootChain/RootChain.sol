@@ -161,7 +161,6 @@ contract RootChain {
     function addExitToQueue(uint256 utxoPos, address exitor, uint256 amount, uint256 created_at)
         private
     {
-        uint256 blknum = utxoPos / 1000000000;
         uint256 exitable_at = Math.max(created_at + 2 weeks, block.timestamp + 1 weeks);
         uint256 priority = exitable_at << 128 | utxoPos;
         require(amount > 0);

@@ -1,12 +1,14 @@
 import rlp
 from ethereum import utils
 
+from plasma.utils.utils import unpack_utxo_pos
 from .block import Block
 from .exceptions import (InvalidBlockMerkleException,
                          InvalidBlockSignatureException,
                          InvalidTxSignatureException, TxAlreadySpentException,
                          TxAmountMismatchException)
 from .transaction import Transaction
+from .root_event_listener import RootEventListener
 
 
 class ChildChain(object):
@@ -20,12 +22,22 @@ class ChildChain(object):
         self.current_block = Block()
         self.pending_transactions = []
 
-        # Register for deposit event listener
-        deposit_filter = self.root_chain.on('Deposit')
-        deposit_filter.watch(self.apply_deposit)
+        self.event_listener = RootEventListener(root_chain, finality=1)
+
+        # Register event listeners
+        self.event_listener.on('Deposit', self.apply_deposit)
+        self.event_listener.on('ExitStarted', self.apply_exit)
+
+    def apply_exit(self, event):
+        event_args = event['args']
+
+        utxo_pos = event_args['utxoPos']
+
+        self.mark_utxo_spent(*unpack_utxo_pos(utxo_pos))
 
     def apply_deposit(self, event):
         event_args = event['args']
+
         depositor = event_args['depositor']
         amount = event_args['amount']
         blknum = event_args['depositBlock']

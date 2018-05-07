@@ -1,8 +1,9 @@
-from unittest.mock import Mock
+from unittest.mock import MagicMock
 
 import pytest
 import rlp
 from ethereum import utils as u
+from plasma.utils.utils import pack_utxo_pos
 from plasma.child_chain.block import Block
 from plasma.child_chain.child_chain import ChildChain
 from plasma.child_chain.exceptions import (InvalidBlockMerkleException,
@@ -21,9 +22,9 @@ amount1 = 200
 amount2 = 400
 
 
-@pytest.fixture
+@pytest.fixture(scope='function')
 def child_chain():
-    child_chain = ChildChain(AUTHORITY, Mock())
+    child_chain = ChildChain(AUTHORITY, MagicMock())
 
     # Create some valid transations
     tx1 = Transaction(0, 0, 0, 0, 0, 0, newowner1, amount1, b'\x00' * 20, 0)
@@ -32,7 +33,9 @@ def child_chain():
     # Create a block with those transactions
     child_chain.blocks[1] = Block([tx1, tx2])
 
-    return child_chain
+    yield child_chain
+
+    child_chain.event_listener.stop_all()
 
 
 def test_send_tx_with_sig(child_chain):
@@ -141,3 +144,25 @@ def test_apply_deposit(child_chain):
 
     # Deposit block only contains one transaction
     assert len(child_chain.blocks[deposit_block_number].transaction_set) == 1
+
+
+def test_apply_exit(child_chain):
+    (blknum, txindex, oindex) = (1, 0, 0)
+    sample_event = {
+        'args': {
+            'exitor': '0xfd02EcEE62797e75D86BCff1642EB0844afB28c7',
+            'utxoPos': pack_utxo_pos(blknum, txindex, oindex),
+            'amount': 100,
+        },
+        'event': 'ExitStarted',
+        'logIndex': 0,
+        'transactionIndex': 0,
+        'transactionHash': '0x35e6446818b53b2c4537ebba32b9453b274286ffbb25e5b521a6b0a33e2cb953',
+        'address': '0xA3B2a1804203b75b494028966C0f62e677447A39',
+        'blockHash': '0x2550290dd333ea2876539b7ba474a804a9143b0d4ecb57b9d824f07ffd016747',
+        'blockNumber': 1
+    }
+    child_chain.apply_exit(sample_event)
+
+    # Transaction now marked spent
+    assert child_chain.blocks[blknum].transaction_set[txindex].spent1 == True
