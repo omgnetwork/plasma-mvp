@@ -98,7 +98,7 @@ Project tests can be found in the `tests/` folder. Run tests with:
 $ make test
 ```
 
-If you're contributing to this project, make sure you also lint your work:
+If you're contributing to this project, make sure you also install [`flake8`](https://pypi.org/project/flake8/) and lint your work:
 
 ```
 $ make lint
