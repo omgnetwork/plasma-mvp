@@ -64,7 +64,6 @@ def test_send_tx_double_spend(test_lang):
     # given
     owner_1 = test_lang.get_account()
     owner_2 = test_lang.get_account()
-    owner_3 = test_lang.get_account()
 
     deposit_id = test_lang.deposit(owner_1, 100)
     test_lang.transfer(deposit_id, owner_2, 100, owner_1)
