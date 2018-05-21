@@ -11,7 +11,7 @@ from plasma.utils.utils import confirm_tx
 from .constants import AUTHORITY, ACCOUNTS, NULL_ADDRESS
 
 class TestingLanguage(object):
-    
+
     TOKEN_PATTERN = r'([A-Za-z]*)([0-9]*)\[(.*?)\]'
 
     def __init__(self):
@@ -19,8 +19,9 @@ class TestingLanguage(object):
         self.root_chain = Deployer().deploy_contract('RootChain', concise=False)
         self.child_chain = ChildChain(bytes.fromhex(AUTHORITY['address'][2:]), self.root_chain)
 
-        self.transactions = dict()
-        self.accounts = dict()
+        self.transactions = []
+        self.accounts = []
+
         self.handlers = dict()
 
         self.register_handler('Deposit', self.deposit)
@@ -32,19 +33,15 @@ class TestingLanguage(object):
     def register_handler(self, token, function):
         self.handlers[token] = function
 
-    def get_account(self, account_name):
-        if account_name == 'OPERATOR':
+    def get_account(self, operator=False):
+        if operator:
             account = AUTHORITY
         else:
-            account = self.accounts.get(account_name, None)
-
-        if account is None:
             account = ACCOUNTS[len(self.accounts)]
-            self.accounts[account_name] = account
+            self.accounts.append(account)
         return account
 
-    def deposit(self, deposit_name, account_name, amount):
-        account = self.get_account(account_name)
+    def deposit(self, account, amount):
         amount = int(amount)
 
         self.root_chain.transact({
@@ -60,52 +57,57 @@ class TestingLanguage(object):
                          account['address'], amount,
                          NULL_ADDRESS, 0)
 
-        self.transactions[deposit_name] = {
+        self.transactions.append({
             'tx': tx,
             'confirm_sigs': b''
-        }
+        })
+        return len(self.transactions) - 1
 
-    def transfer(self, transfer_name,
-                 input1, newowner1, amount1, signatory1,
-                 input2, newowner2, amount2, signatory2):
-        newowner_address1 = self.get_account(newowner1)['address']
+    def transfer(self,
+                 input1, newowner1, amount1, key1,
+                 input2=None, newowner2=None, amount2=None, key2=None):
+        newowner_address1 = newowner1['address']
         amount1 = int(amount1)
 
         newowner_address2 = NULL_ADDRESS
         if newowner2 is not None:
-            newowner_address2 = self.get_account(newowner2)['address']
+            newowner_address2 = newowner2['address']
         amount2 = int(amount2) if amount2 is not None else 0
 
         encoded_input_tx1 = rlp.encode(self.transactions[input1]['tx']).hex()
         blknum1, txindex1 = self.child_chain.get_tx_pos(encoded_input_tx1)
-        oindex1 = 1 if input1.endswith('.1') else 0
+        # KTXXX - support oindex
+        oindex1 = 0
+        # oindex1 = 1 if input1.endswith('.1') else 0
 
         blknum2, txindex2, oindex2 = 0, 0, 0
         if input2 is not None:
             encoded_input_tx2 = rlp.encode(self.transactions[input2]['tx']).hex()
             blknum2, txindex2 = self.child_chain.get_tx_pos(encoded_input_tx2)
-            oindex2 = 1 if input2.endswith('.1') else 0
-            
+            # KTXXX - support oindex
+            oindex2 = 0
+            # oindex2 = 1 if input2.endswith('.1') else 0
+
         tx = Transaction(blknum1, txindex1, oindex1,
                          blknum2, txindex2, oindex2,
                          newowner_address1, amount1,
                          newowner_address2, amount2)
 
-        key1 = self.get_account(signatory1)['key']
         tx.sign1(key1)
 
         if input2 is not None:
-            key2 = self.get_account(signatory1)['key']
             tx.sign2(key2)
 
         encoded_tx = rlp.encode(tx).hex()
 
         self.child_chain.apply_transaction(encoded_tx)
 
-        self.transactions[transfer_name] = {
+        self.transactions.append({
             'tx': tx,
             'confirm_sigs': b''
-        }
+        })
+        return len(self.transactions) - 1
+
 
     def submit_block(self, signatory):
         signing_key = self.get_account(signatory)['key']
@@ -115,7 +117,7 @@ class TestingLanguage(object):
         block.make_mutable()
         if signing_key:
             block.sign(signing_key)
-        
+
         self.child_chain.submit_block(rlp.encode(block).hex())
 
     def confirm(self, tx_name, signatory1, signatory2):
@@ -164,11 +166,13 @@ class TestingLanguage(object):
                 'from': account['address']
             }).startExit(utxo_pos, tx_bytes, proof, sigs)
 
+
+
     def parse(self, test_lang_string):
         for token in test_lang_string.split():
             handler, arguments = self.parse_token(token)
             fn = self.handlers[handler]
-    
+
             # Determine how many arguments are required and pad with None
             required_args = len(signature(fn).parameters)
             arguments += [None] * (required_args - len(arguments))
