@@ -64,8 +64,8 @@ class TestingLanguage(object):
         return len(self.transactions) - 1
 
     def transfer(self,
-                 input1, newowner1, amount1, key1,
-                 input2=None, newowner2=None, amount2=None, key2=None):
+                 input1, newowner1, amount1, signatory1,
+                 input2=None, newowner2=None, amount2=None, signatory2=None):
         newowner_address1 = newowner1['address']
         amount1 = int(amount1)
 
@@ -93,9 +93,11 @@ class TestingLanguage(object):
                          newowner_address1, amount1,
                          newowner_address2, amount2)
 
+        key1 = signatory1['key']
         tx.sign1(key1)
 
         if input2 is not None:
+            key2 = signatory2['key']
             tx.sign2(key2)
 
         encoded_tx = rlp.encode(tx).hex()
