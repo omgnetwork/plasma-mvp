@@ -23,7 +23,7 @@ contract RootChain {
      */
     event Deposit(
         address indexed depositor,
-        uint256 indexed depositBLock,
+        uint256 indexed depositBlock,
         uint256 amount
     );
 
