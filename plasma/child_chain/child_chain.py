@@ -32,6 +32,7 @@ class ChildChain(object):
 
         deposit_tx = Transaction(0, 0, 0,
                                  0, 0, 0,
+                                 b'\x00' * 20,
                                  depositor, amount,
                                  b'\x00' * 20, 0,
                                  0)
