@@ -89,7 +89,7 @@ contract RootChain {
     function submitBlock(bytes32 root)
         public
         isAuthority
-    {
+    {   
         childChain[currentChildBlock] = childBlock({
             root: root,
             created_at: block.timestamp

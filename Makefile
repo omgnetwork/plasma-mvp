@@ -41,3 +41,7 @@ lint:
 .PHONY: test
 test:
 	python -m pytest
+
+.PHONY: ganache
+ganache:
+	ganache-cli -m="plasma_mvp"
