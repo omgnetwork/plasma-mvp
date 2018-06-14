@@ -20,7 +20,7 @@ def test_send_tx_with_sig(test_lang):
 
     deposit_id = test_lang.deposit(owner_1, 100)
     test_lang.transfer(deposit_id, 0, owner_2, 100, owner_1)
-    
+
 
 def test_send_tx_no_sig(test_lang):
     owner_1 = test_lang.get_account()

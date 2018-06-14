@@ -1,7 +1,7 @@
 import json
 import os
 from solc import compile_standard
-from web3.contract import ConciseContract, Contract
+from web3.contract import ConciseContract
 from web3 import Web3, HTTPProvider
 
 OWN_DIR = os.path.dirname(os.path.realpath(__file__))
