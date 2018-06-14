@@ -17,22 +17,10 @@ class TestingLanguage(object):
     def __init__(self):
         self.w3 = Web3(HTTPProvider('http://localhost:8545'))
         self.root_chain = Deployer().deploy_contract('RootChain', concise=False)
-        self.child_chain = ChildChain(bytes.fromhex(AUTHORITY['address'][2:]), self.root_chain)
+        self.child_chain = ChildChain(AUTHORITY['address'], self.root_chain)
 
         self.transactions = []
         self.accounts = []
-
-        self.handlers = dict()
-
-        # Register handlers
-        self.register_handler('Deposit', self.deposit)
-        self.register_handler('Transfer', self.transfer)
-        self.register_handler('SubmitBlock', self.submit_block)
-        self.register_handler('Confirm', self.confirm)
-        self.register_handler('Withdraw', self.withdraw)
-
-    def register_handler(self, token, function):
-        self.handlers[token] = function
 
     def get_account(self):
         account = ACCOUNTS[len(self.accounts)]

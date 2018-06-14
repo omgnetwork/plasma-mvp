@@ -30,9 +30,7 @@ class ChildChain(object):
 
     def apply_exit(self, event):
         event_args = event['args']
-
         utxo_pos = event_args['utxoPos']
-
         self.mark_utxo_spent(*unpack_utxo_pos(utxo_pos))
 
     def apply_deposit(self, event):
@@ -106,11 +104,11 @@ class ChildChain(object):
         if block.merklize_transaction_set() != self.current_block.merklize_transaction_set():
             raise InvalidBlockMerkleException('input block merkle mismatch with the current block')
 
-        valid_signature = block.sig != b'\x00' * 65 and block.sender == self.authority
+        valid_signature = block.sig != b'\x00' * 65 and block.sender == bytes.fromhex(self.authority[2:])
         if not valid_signature:
             raise InvalidBlockSignatureException('failed to submit block')
 
-        self.root_chain.transact({'from': '0x' + self.authority.hex()}).submitBlock(block.merkle.root)
+        self.root_chain.transact({'from': self.authority}).submitBlock(block.merkle.root)
         # TODO: iterate through block and validate transactions
         self.blocks[self.current_block_number] = self.current_block
         self.current_block_number += self.child_block_interval

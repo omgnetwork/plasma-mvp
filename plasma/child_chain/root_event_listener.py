@@ -1,4 +1,5 @@
 import time
+import random
 import json
 import threading
 from web3 import Web3, HTTPProvider
@@ -23,6 +24,7 @@ class RootEventListener(object):
         self.root_chain = root_chain
         self.w3 = w3
         self.confirmations = confirmations
+        self.lock = threading.Lock()
 
         self.seen_events = {}
         self.active_events = {}
@@ -41,7 +43,7 @@ class RootEventListener(object):
             event_handler (function): A function to call when the event is caught.
         """
 
-        self.subscribers[event_name] = event_handler
+        self.subscribers[event_name].append(event_handler)
 
     def __listen_for_event(self, event_name):
         """Registers an event as being watched for and starts a filter loop.
@@ -86,16 +88,25 @@ class RootEventListener(object):
 
         while event_name in self.active_events:
             current_block = self.w3.eth.getBlock('latest')
-            event_filter = self.root_chain.eventFilter(event_name, {
-                'fromBlock': current_block['number'] - (self.confirmations * 2 + 1),
-                'toBlock': current_block['number'] - self.confirmations
-            })
-            for event in event_filter.get_all_events():
+
+            # HACK: Must be removed once Web3/Ganache events work again https://github.com/trufflesuite/ganache-core/issues/97
+            with self.lock:
+                contract_address = self.root_chain.address
+                self.root_chain.address = None
+                event_filter = self.root_chain.eventFilter(event_name, {
+                    'fromBlock': current_block['number'] - (self.confirmations * 2 + 1),
+                    'toBlock': current_block['number'] + 1 - self.confirmations
+                })
+                self.root_chain.address = contract_address
+
+            for event in event_filter.get_all_entries():
+                address_matches = (event['address'] == contract_address)
                 event_hash = self.__hash_event(event)
-                if event_hash not in self.seen_events:
+                if event_hash not in self.seen_events and address_matches:
                     self.seen_events[event_hash] = True
                     self.broadcast_event(event_name, event)
-            time.sleep(5)
+
+            time.sleep(random.random())
 
     def broadcast_event(self, event_name, event):
         """Broadcasts an event to all subscribers.
@@ -118,5 +129,17 @@ class RootEventListener(object):
             str: Hexadecimal hash string.
         """
 
-        stringified_event = json.dumps(event, sort_keys=True)
+        # HACK: Be able to JSON serialize the AttributeDict/HexBytes objects https://github.com/ethereum/web3.py/issues/782
+        from hexbytes import HexBytes
+        from web3.utils.datastructures import AttributeDict
+
+        class CustomJsonEncoder(json.JSONEncoder):
+            def default(self, obj):
+                if isinstance(obj, AttributeDict):
+                    return obj.__dict__
+                if isinstance(obj, HexBytes):
+                    return obj.hex()
+                return super().default(obj)
+
+        stringified_event = json.dumps(dict(event), sort_keys=True, cls=CustomJsonEncoder)
         return sha256(stringified_event.encode()).hexdigest()

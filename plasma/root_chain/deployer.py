@@ -110,12 +110,11 @@ class Deployer(object):
         tx_receipt = self.w3.eth.getTransactionReceipt(tx_hash)
         contract_address = tx_receipt['contractAddress']
 
-        contract_factory_class = ConciseContract if concise else Contract
-        contract_instance = self.w3.eth.contract(abi, contract_address, ContractFactoryClass=contract_factory_class)
+        contract_instance = self.w3.eth.contract(address=contract_address, abi=abi)
 
         print("Successfully deployed {0} contract!".format(contract_name))
 
-        return contract_instance
+        return ConciseContract(contract_instance) if concise else contract_instance
 
     def get_contract_at_address(self, contract_name, address, concise=True):
         """Returns a Web3 instance of the given contract at the given address
@@ -129,9 +128,8 @@ class Deployer(object):
             Contract: A Web3 contract instance.
         """
 
-        abi, bytecode = self.get_contract_data(contract_name)
+        abi, _ = self.get_contract_data(contract_name)
 
-        contract_factory_class = ConciseContract if concise else Contract
-        contract_instance = self.w3.eth.contract(abi=abi, bytecode=bytecode, address=address, ContractFactoryClass=contract_factory_class)
+        contract_instance = self.w3.eth.contract(abi=abi, address=address)
 
-        return contract_instance
+        return ConciseContract(contract_instance) if concise else contract_instance
