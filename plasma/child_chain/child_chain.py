@@ -42,7 +42,7 @@ class ChildChain(object):
         amount = event_args['amount']
         blknum = event_args['depositBlock']
 
-        deposit_tx = Transaction(blknum, 0, 0,
+        deposit_tx = Transaction(0, 0, 0,
                                  0, 0, 0,
                                  depositor, amount,
                                  b'\x00' * 20, 0,
@@ -118,6 +118,18 @@ class ChildChain(object):
 
     def get_transaction(self, blknum, txindex):
         return rlp.encode(self.blocks[blknum].transaction_set[txindex]).hex()
+
+    def get_tx_pos(self, transaction):
+        decoded_tx = rlp.decode(utils.decode_hex(transaction), Transaction)
+
+        for blknum in self.blocks:
+            block = self.blocks[blknum]
+            for txindex in range(0, len(block.transaction_set)):
+                tx = block.transaction_set[txindex]
+                if (decoded_tx.hash == tx.hash):
+                    return blknum, txindex
+
+        return None, None
 
     def get_block(self, blknum):
         return rlp.encode(self.blocks[blknum]).hex()

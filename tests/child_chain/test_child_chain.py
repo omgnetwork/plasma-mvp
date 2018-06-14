@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 from unittest.mock import MagicMock
 
 import pytest
@@ -8,104 +9,96 @@ from plasma.child_chain.block import Block
 from plasma.child_chain.child_chain import ChildChain
 from plasma.child_chain.exceptions import (InvalidBlockMerkleException,
                                            InvalidBlockSignatureException,
+=======
+import pytest
+from plasma.child_chain.exceptions import (InvalidBlockSignatureException,
+>>>>>>> eb9a1ba4b82b5aa9179c68fcf6f1b75eb1798977
                                            InvalidTxSignatureException,
                                            TxAlreadySpentException)
-from plasma.child_chain.transaction import Transaction
-
-AUTHORITY = b'\xfd\x02\xec\xeeby~u\xd8k\xcf\xf1d.\xb0\x84J\xfb(\xc7'
-tx_key = u.normalize_key(b'8b76243a95f959bf101248474e6bdacdedc8ad995d287c24616a41bd51642965')
-invalid_tx_key = u.normalize_key(b'8a76243a95f959bf101248474e6bdacdedc8ad995d287c24616a41bd51642965')
-block_key = u.normalize_key(b'3bb369fecdc16b93b99514d8ed9c2e87c5824cf4a6a98d2e8e91b7dd0c063304')
-invalid_block_key = u.normalize_key(b'3ab369fecdc16b93b99514d8ed9c2e87c5824cf4a6a98d2e8e91b7dd0c063304')
-newowner1 = b'\x8cT\xa4\xa0\x17\x9f$\x80\x1fI\xf92-\xab<\x87\xeb\x19L\x9b'
-amount1 = 200
-amount2 = 400
 
 
+<<<<<<< HEAD
 @pytest.fixture(scope='function')
 def child_chain():
     child_chain = ChildChain(AUTHORITY, MagicMock())
+=======
+def test_apply_deposit(test_lang):
+    owner = test_lang.get_account()
+>>>>>>> eb9a1ba4b82b5aa9179c68fcf6f1b75eb1798977
 
-    # Create some valid transations
-    tx1 = Transaction(0, 0, 0, 0, 0, 0, newowner1, amount1, b'\x00' * 20, 0)
-    tx2 = Transaction(0, 0, 0, 0, 0, 0, newowner1, amount1, b'\x00' * 20, 0)
+    test_lang.deposit(owner, 100)
 
+<<<<<<< HEAD
     # Create a block with those transactions
     child_chain.blocks[1] = Block([tx1, tx2])
 
     yield child_chain
 
     child_chain.event_listener.stop_all()
+=======
+    deposit_block_number = 1
+    deposit_block = test_lang.child_chain.blocks[deposit_block_number]
+    assert len(deposit_block.transaction_set) == 1
+>>>>>>> eb9a1ba4b82b5aa9179c68fcf6f1b75eb1798977
 
 
-def test_send_tx_with_sig(child_chain):
-    tx3 = Transaction(1, 0, 0, 1, 1, 0, newowner1, amount2, b'\x00' * 20, 0)
+def test_send_tx_with_sig(test_lang):
+    owner_1 = test_lang.get_account()
+    owner_2 = test_lang.get_account()
 
-    # Sign the transaction
-    tx3.sign1(tx_key)
-    tx3.sign2(tx_key)
-
-    child_chain.apply_transaction(rlp.encode(tx3).hex())
+    deposit_id = test_lang.deposit(owner_1, 100)
+    test_lang.transfer(deposit_id, 0, owner_2, 100, owner_1)
 
 
-def test_send_tx_no_sig(child_chain):
-    tx3 = Transaction(1, 0, 0, 1, 1, 0, newowner1, amount2, b'\x00' * 20, 0)
+def test_send_tx_no_sig(test_lang):
+    owner_1 = test_lang.get_account()
+    owner_2 = test_lang.get_account()
+    key = None
 
-    with pytest.raises(InvalidTxSignatureException):
-        child_chain.apply_transaction(rlp.encode(tx3).hex())
-
-
-def test_send_tx_invalid_sig(child_chain):
-    tx3 = Transaction(1, 0, 0, 1, 1, 0, newowner1, amount2, b'\x00' * 20, 0)
-
-    # Sign with an invalid key
-    tx3.sign1(invalid_tx_key)
-    tx3.sign2(invalid_tx_key)
+    deposit_id = test_lang.deposit(owner_1, 100)
 
     with pytest.raises(InvalidTxSignatureException):
-        child_chain.apply_transaction(rlp.encode(tx3).hex())
+        test_lang.transfer(deposit_id, 0, owner_2, 100, key)
 
 
-def test_send_tx_double_spend(child_chain):
-    tx3 = Transaction(1, 0, 0, 1, 1, 0, newowner1, amount2, b'\x00' * 20, 0)
+def test_send_tx_invalid_sig(test_lang):
+    owner_1 = test_lang.get_account()
+    owner_2 = test_lang.get_account()
+    owner_3 = test_lang.get_account()
 
-    tx3.sign1(tx_key)
-    tx3.sign2(tx_key)
+    deposit_id = test_lang.deposit(owner_1, 100)
 
-    # Submit once
-    child_chain.apply_transaction(rlp.encode(tx3).hex())
+    with pytest.raises(InvalidTxSignatureException):
+        test_lang.transfer(deposit_id, 0, owner_2, 100, owner_3)
 
-    # Try to submit again
+
+def test_send_tx_double_spend(test_lang):
+    owner_1 = test_lang.get_account()
+    owner_2 = test_lang.get_account()
+
+    deposit_id = test_lang.deposit(owner_1, 100)
+    test_lang.transfer(deposit_id, 0, owner_2, 100, owner_1)
+
     with pytest.raises(TxAlreadySpentException):
-        child_chain.apply_transaction(rlp.encode(tx3).hex())
+        test_lang.transfer(deposit_id, 0, owner_2, 100, owner_1)
 
 
-def test_submit_block(child_chain):
-    block = child_chain.current_block
-    block.make_mutable()
-    block.sign(block_key)
-    block = rlp.encode(block).hex()
-
-    old_block_number = child_chain.current_block_number
-    child_chain.submit_block(block)
-    assert child_chain.current_block_number == old_block_number + child_chain.child_block_interval
+def test_submit_block(test_lang):
+    old_block_number = test_lang.child_chain.current_block_number
+    test_lang.submit_block()
+    assert test_lang.child_chain.current_block_number == old_block_number + test_lang.child_chain.child_block_interval
 
 
-def test_submit_block_no_sig(child_chain):
-    block = child_chain.current_block
-    block = rlp.encode(block).hex()
+def test_submit_block_no_sig(test_lang):
+    with pytest.raises(InvalidBlockSignatureException):
+        test_lang.submit_block(None)
+
+
+def test_submit_block_invalid_sig(test_lang):
+    owner_1 = test_lang.get_account()
 
     with pytest.raises(InvalidBlockSignatureException):
-        child_chain.submit_block(block)
-
-
-def test_submit_block_invalid_sig(child_chain):
-    block = child_chain.current_block
-    block.make_mutable()
-    block.sign(invalid_block_key)
-    block = rlp.encode(block).hex()
-
-    with pytest.raises(InvalidBlockSignatureException):
+<<<<<<< HEAD
         child_chain.submit_block(block)
 
 
@@ -170,3 +163,6 @@ def test_apply_exit(child_chain):
 
     # Transaction is marked spent
     assert child_chain.blocks[blknum].transaction_set[txindex].spent1
+=======
+        test_lang.submit_block(owner_1)
+>>>>>>> eb9a1ba4b82b5aa9179c68fcf6f1b75eb1798977

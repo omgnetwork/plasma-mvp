@@ -16,6 +16,6 @@ install:
   - make
 
 script:
-  - (ganache-cli &) && while ! curl -s localhost:8545 >/dev/null; do sleep 1; done
+  - (ganache-cli -m="plasma_mvp" &) && while ! curl -s localhost:8545 >/dev/null; do sleep 1; done
   - make test
   - make lint

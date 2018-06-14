@@ -1,10 +1,11 @@
+import os
 import pytest
 from ethereum.tools import tester, _solidity
 from ethereum.abi import ContractTranslator
 from ethereum import utils
 from plasma.utils import utils as plasma_utils
 from plasma.root_chain.deployer import Deployer
-import os
+from testing_lang.testing_language import TestingLanguage
 
 
 OWN_DIR = os.path.dirname(os.path.realpath(__file__))
@@ -67,3 +68,8 @@ def bytes_helper():
     def bytes_helper(inp, length):
         return bytes(length - len(inp)) + inp
     return bytes_helper
+
+
+@pytest.fixture()
+def test_lang():
+    return TestingLanguage()
