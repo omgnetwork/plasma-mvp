@@ -19,10 +19,10 @@ class RootEventListener(object):
         finality (int): Number of blocks before events should be considered final.
     """
 
-    def __init__(self, root_chain, w3=Web3(HTTPProvider('http://localhost:8545')), finality=6):
+    def __init__(self, root_chain, w3=Web3(HTTPProvider('http://localhost:8545')), confirmations=6):
         self.root_chain = root_chain
         self.w3 = w3
-        self.finality = finality
+        self.confirmations = confirmations
 
         self.seen_events = {}
         self.active_events = {}
@@ -74,7 +74,7 @@ class RootEventListener(object):
         """Starts a filter loop to broadcast events.
 
         Note that we only watch for events that occur between
-        `finality` and `finality * 2`. This is important because
+        `confirmations` and `confirmations * 2`. This is important because
         we never want a client to act on an event that isn't
         finalized. We might catch the same event twice, so we hash
         each event and make sure we haven't seen that event yet before
@@ -87,8 +87,8 @@ class RootEventListener(object):
         while event_name in self.active_events:
             current_block = self.w3.eth.getBlock('latest')
             event_filter = self.root_chain.eventFilter(event_name, {
-                'fromBlock': current_block['number'] - (self.finality * 2),
-                'toBlock': current_block['number'] - self.finality
+                'fromBlock': current_block['number'] - (self.confirmations * 2 + 1),
+                'toBlock': current_block['number'] - self.confirmations
             })
             for event in event_filter.get_all_events():
                 event_hash = self.__hash_event(event)

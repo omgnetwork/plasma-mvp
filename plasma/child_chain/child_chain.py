@@ -22,7 +22,7 @@ class ChildChain(object):
         self.current_block = Block()
         self.pending_transactions = []
 
-        self.event_listener = RootEventListener(root_chain, finality=1)
+        self.event_listener = RootEventListener(root_chain, confirmations=0)
 
         # Register event listeners
         self.event_listener.on('Deposit', self.apply_deposit)

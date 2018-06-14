@@ -162,7 +162,11 @@ def test_apply_exit(child_chain):
         'blockHash': '0x2550290dd333ea2876539b7ba474a804a9143b0d4ecb57b9d824f07ffd016747',
         'blockNumber': 1
     }
+
+    # Transaction not marked spent
+    assert not child_chain.blocks[blknum].transaction_set[txindex].spent1
+
     child_chain.apply_exit(sample_event)
 
-    # Transaction now marked spent
+    # Transaction is marked spent
     assert child_chain.blocks[blknum].transaction_set[txindex].spent1

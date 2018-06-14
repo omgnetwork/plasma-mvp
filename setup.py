@@ -29,7 +29,8 @@ setup(
         'eth-keyfile==0.4.1',
         'eth-keys==0.1.0b4',
         'eth-tester==0.1.0b15',
-        'eth-utils==0.7.3'
+        'eth-utils==0.7.3',
+        'flake8==3.5.0'
     ],
     entry_points={
         'console_scripts': ["omg=plasma.cli:cli"],
