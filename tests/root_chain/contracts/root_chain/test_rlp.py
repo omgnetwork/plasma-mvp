@@ -1,11 +1,11 @@
 import pytest
 import rlp
 
-from eth_utils import encode_hex, decode_hex
+from eth_utils import encode_hex
 
-import rlp
-from rlp.sedes import big_endian_int, binary
+from rlp.sedes import big_endian_int
 from ethereum import utils
+
 
 class Eight(rlp.Serializable):
     fields = [
@@ -28,6 +28,7 @@ class Eight(rlp.Serializable):
         self.f5 = f5
         self.f6 = f6
         self.f7 = f7
+
 
 class Eleven(rlp.Serializable):
     fields = [
@@ -57,16 +58,19 @@ class Eleven(rlp.Serializable):
         self.f9 = f9
         self.f10 = f10
 
+
 @pytest.fixture
 def rlp_test(t, get_contract):
     contract = get_contract('RLPTest')
     t.chain.mine()
     return contract
 
+
 def test_rlp_tx_eight(t, u, rlp_test):
     tx = Eight(0, 1, 2, 3, 4, 5, t.a0, t.a1)
     tx_bytes = rlp.encode(tx, Eight)
     assert [5, encode_hex(t.a0), encode_hex(t.a1)] == rlp_test.eight(tx_bytes)
+
 
 def test_rlp_tx_eleven(t, u, rlp_test):
     tx = Eleven(0, 1, 2, 3, 4, 5, 6, 7, t.a0, t.a1, t.a2)
