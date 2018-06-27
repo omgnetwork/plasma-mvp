@@ -88,6 +88,8 @@ contract RootChain {
         currentChildBlock = childBlockInterval;
         currentDepositBlock = 1;
         currentFeeExit = 1;
+        // Support only ETH on deployment; other tokens need
+        // to be added explicitly.
         exitsQueues[address(0)] = address(new PriorityQueue());
     }
 
