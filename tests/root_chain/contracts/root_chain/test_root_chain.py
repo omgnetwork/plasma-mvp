@@ -35,8 +35,8 @@ def test_start_deposit_exit(t, u, root_chain, assert_tx_failed):
     utxo_pos, exitable_at = root_chain.getNextExit(null_address)
     assert utxo_pos == expected_utxo_pos
     assert exitable_at == expected_exitable_at
-    null_address_str = "0x" + "00" * 20
-    assert root_chain.exits(utxo_pos) == ['0x82a978b3f5962a5b0957d9ee9eef472ee55b42f1', null_address_str, 100]
+    enc_null_address = "0x" + "00" * 20
+    assert root_chain.exits(utxo_pos) == ['0x82a978b3f5962a5b0957d9ee9eef472ee55b42f1', enc_null_address, 100]
     # Same deposit cannot be exited twice
     assert_tx_failed(lambda: root_chain.startDepositExit(utxo_pos, null_address, value_1))
     # Fails if transaction sender is not the depositor
@@ -97,8 +97,8 @@ def test_start_exit(t, root_chain, assert_tx_failed):
     # Cannot exit twice off of the same utxo
     utxo_pos1 = dep_blknum * 1000000000 + 10000 * 0 + 1
     assert_tx_failed(lambda: root_chain.startExit(utxo_pos1, deposit_tx_hash, proof, sigs, sender=key))
-    null_address_str = "0x" + "00" * 20
-    assert root_chain.getExit(priority1) == ['0x' + owner.hex(), null_address_str, 100]
+    enc_null_address = "0x" + "00" * 20
+    assert root_chain.getExit(priority1) == ['0x' + owner.hex(), enc_null_address, 100]
     t.chain.revert(snapshot)
 
     tx2 = Transaction(dep_blknum, 0, 0, 0, 0, 0,
@@ -118,7 +118,7 @@ def test_start_exit(t, root_chain, assert_tx_failed):
     # # Single input exit
     utxo_pos2 = child_blknum * 1000000000 + 10000 * 0 + 0
     root_chain.startExit(utxo_pos2, tx_bytes2, proof, sigs, sender=key)
-    assert root_chain.getExit(priority2) == ['0x' + owner.hex(), null_address_str, 100]
+    assert root_chain.getExit(priority2) == ['0x' + owner.hex(), enc_null_address, 100]
     t.chain.revert(snapshot)
     dep2_blknum = root_chain.getDepositBlock()
     assert dep2_blknum == 1001
@@ -141,7 +141,7 @@ def test_start_exit(t, root_chain, assert_tx_failed):
     # Double input exit
     utxoPos3 = child2_blknum * 1000000000 + 10000 * 0 + 0
     root_chain.startExit(utxoPos3, tx_bytes3, proof, sigs, sender=key)
-    assert root_chain.getExit(priority3) == ['0x' + owner.hex(), null_address_str, 100]
+    assert root_chain.getExit(priority3) == ['0x' + owner.hex(), enc_null_address, 100]
 
 
 def test_challenge_exit(t, u, root_chain, assert_tx_failed):
@@ -185,8 +185,8 @@ def test_challenge_exit(t, u, root_chain, assert_tx_failed):
     sigs = tx4.sig1 + tx4.sig2
     utxo_pos4 = child_blknum * 1000000000 + 10000 * 0 + 0
     oindex1 = 0
-    null_address_str = "0x" + "00" * 20
-    assert root_chain.exits(utxo_pos1) == ['0x' + owner.hex(), null_address_str, 100]
+    enc_null_address = "0x" + "00" * 20
+    assert root_chain.exits(utxo_pos1) == ['0x' + owner.hex(), enc_null_address, 100]
     # Fails if transaction after exit doesn't reference the utxo being exited
     assert_tx_failed(lambda: root_chain.challengeExit(utxo_pos3, utxo_pos1, tx_bytes3, proof, sigs, confirmSig))
     # Fails if transaction proof is incorrect
@@ -194,7 +194,7 @@ def test_challenge_exit(t, u, root_chain, assert_tx_failed):
     # Fails if transaction confirmation is incorrect
     assert_tx_failed(lambda: root_chain.challengeExit(utxo_pos4, utxo_pos1, tx_bytes4, proof, sigs, confirmSig[::-1]))
     root_chain.challengeExit(utxo_pos4, oindex1, tx_bytes4, proof, sigs, confirmSig)
-    assert root_chain.exits(utxo_pos1) == ['0x0000000000000000000000000000000000000000', null_address_str, value_1]
+    assert root_chain.exits(utxo_pos1) == ['0x0000000000000000000000000000000000000000', enc_null_address, value_1]
 
 
 def test_finalize_exits(t, u, root_chain):
@@ -209,10 +209,10 @@ def test_finalize_exits(t, u, root_chain):
     utxo_pos1 = dep1_blknum * 1000000000 + 10000 * 0 + 1
     root_chain.startDepositExit(utxo_pos1, null_address, tx1.amount1, sender=key)
     t.chain.head_state.timestamp += two_weeks * 2
-    null_address_str = "0x" + "00" * 20
-    assert root_chain.exits(utxo_pos1) == ['0x' + owner.hex(), null_address_str, 100]
+    enc_null_address = "0x" + "00" * 20
+    assert root_chain.exits(utxo_pos1) == ['0x' + owner.hex(), enc_null_address, 100]
     pre_balance = t.chain.head_state.get_balance(owner)
     root_chain.finalizeExits(sender=t.k2)
     post_balance = t.chain.head_state.get_balance(owner)
     assert post_balance == pre_balance + value_1
-    assert root_chain.exits(utxo_pos1) == ['0x0000000000000000000000000000000000000000', null_address_str, value_1]
+    assert root_chain.exits(utxo_pos1) == ['0x0000000000000000000000000000000000000000', enc_null_address, value_1]
