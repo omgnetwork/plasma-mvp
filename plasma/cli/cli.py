@@ -33,7 +33,7 @@ def deposit(client, amount, address):
 @click.argument('blknum2', type=int)
 @click.argument('txindex2', type=int)
 @click.argument('oindex2', type=int)
-@click.argument('cur12', default=b'\x00' * 20)
+@click.argument('cur12', default="0x0")
 @click.argument('newowner1')
 @click.argument('amount1', type=int)
 @click.argument('newowner2')
@@ -50,6 +50,8 @@ def sendtx(client,
            amount2, newowner2,
            fee,
            key1, key2):
+    if cur12 == "0x0":
+        cur12 = NULL_ADDRESS
     if newowner1 == "0x0":
         newowner1 = NULL_ADDRESS
     if newowner2 == "0x0":
