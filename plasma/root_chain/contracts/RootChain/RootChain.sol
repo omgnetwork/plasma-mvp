@@ -147,7 +147,7 @@ contract RootChain {
         uint256 blknum = utxoPos / 1000000000;
         uint256 txindex = (utxoPos % 1000000000) / 10000;
         uint256 oindex = utxoPos - blknum * 1000000000 - txindex * 10000; 
-        var exitingTx = txBytes.createExitingTx(11, oindex);
+        var exitingTx = txBytes.createExitingTx(oindex);
         
         require(msg.sender == exitingTx.exitor);
         bytes32 root = childChain[blknum].root; 
@@ -183,7 +183,7 @@ contract RootChain {
     function challengeExit(uint256 cUtxoPos, uint256 eUtxoIndex, bytes txBytes, bytes proof, bytes sigs, bytes confirmationSig)
         public
     {
-        uint256 eUtxoPos = txBytes.getUtxoPos(11, eUtxoIndex);
+        uint256 eUtxoPos = txBytes.getUtxoPos(eUtxoIndex);
         uint256 txindex = (cUtxoPos % 1000000000) / 10000;
         bytes32 root = childChain[cUtxoPos / 1000000000].root;
         var txHash = keccak256(txBytes);

@@ -6,7 +6,7 @@ python:
 cache: pip
 
 env:
-  NODE_VERSION="6"
+  NODE_VERSION="8"
 
 install:
   - nvm install $NODE_VERSION

@@ -3,6 +3,7 @@ from ethereum import utils
 from plasma.utils.utils import confirm_tx
 from plasma.client.client import Client
 from plasma.child_chain.transaction import Transaction
+from plasma.client.exceptions import ChildChainServiceError
 
 
 CONTEXT_SETTINGS = dict(
@@ -15,6 +16,17 @@ NULL_ADDRESS = b'\x00' * 20
 @click.pass_context
 def cli(ctx):
     ctx.obj = Client()
+
+
+def client_call(fn, argz=(), successmessage=""):
+    try:
+        output = fn(*argz)
+        if successmessage:
+            print(successmessage)
+        return output
+    except ChildChainServiceError as err:
+        print("Error:", err)
+        print("additional details can be found from the child chain's server output")
 
 
 @cli.command()
@@ -66,24 +78,23 @@ def sendtx(client,
     if key2:
         tx.sign2(utils.normalize_key(key2))
 
-    client.apply_transaction(tx)
-    print("Sent transaction")
+    client_call(client.apply_transaction, [tx], "Sent transaction")
 
 
 @cli.command()
 @click.argument('key', required=True)
 @click.pass_obj
 def submitblock(client, key):
+
     # Get the current block, already decoded by client
-    block = client.get_current_block()
+    block = client_call(client.get_current_block)
 
     # Sign the block
     block.make_mutable()
     normalized_key = utils.normalize_key(key)
     block.sign(normalized_key)
 
-    client.submit_block(block)
-    print("Submitted current block")
+    client_call(client.submit_block, [block], "Submitted current block")
 
 
 @cli.command()
@@ -96,8 +107,9 @@ def submitblock(client, key):
 def withdraw(client,
              blknum, txindex, oindex,
              key1, key2):
+
     # Get the transaction's block, already decoded by client
-    block = client.get_block(blknum)
+    block = client_call(client.get_block, [blknum])
 
     # Create a Merkle proof
     tx = block.transaction_set[txindex]
@@ -113,7 +125,7 @@ def withdraw(client,
     sigs = tx.sig1 + tx.sig2 + confirmSig1 + confirmSig2
 
     client.withdraw(blknum, txindex, oindex, tx, proof, sigs)
-    print('Submitted withdrawal')
+    print("Submitted withdrawal")
 
 
 @cli.command()
@@ -124,7 +136,7 @@ def withdraw(client,
 def withdrawdeposit(client, owner, blknum, amount):
     deposit_pos = blknum * 1000000000
     client.withdraw_deposit(owner, deposit_pos, amount)
-    print('Submitted withdrawal')
+    print("Submitted withdrawal")
 
 
 if __name__ == '__main__':
