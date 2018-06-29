@@ -2,6 +2,7 @@ pragma solidity 0.4.18;
 
 import "./RLP.sol";
 
+
 library PlasmaRLP {
 
     struct exitingTx {

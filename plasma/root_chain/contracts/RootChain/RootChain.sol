@@ -1,18 +1,17 @@
 pragma solidity 0.4.18;
 
-import 'SafeMath.sol';
-import 'Math.sol';
-import 'PlasmaRLP.sol';
-import 'Merkle.sol';
-import 'Validate.sol';
-import 'PriorityQueue.sol';
+import "./SafeMath.sol";
+import "./Math.sol";
+import "./PlasmaRLP.sol";
+import "./Merkle.sol";
+import "./Validate.sol";
+import "./PriorityQueue.sol";
 
 
 /**
  * @title RootChain
  * @dev This contract secures a utxo payments plasma child chain to ethereum
  */
-
 contract RootChain {
     using SafeMath for uint256;
     using Merkle for bytes32;
@@ -161,7 +160,6 @@ contract RootChain {
     function addExitToQueue(uint256 utxoPos, address exitor, uint256 amount, uint256 created_at)
         private
     {
-        uint256 blknum = utxoPos / 1000000000;
         uint256 exitable_at = Math.max(created_at + 2 weeks, block.timestamp + 1 weeks);
         uint256 priority = exitable_at << 128 | utxoPos;
         require(amount > 0);
