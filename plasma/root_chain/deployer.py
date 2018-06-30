@@ -30,6 +30,23 @@ class Deployer(object):
                 file_name: {
                     'urls': [os.path.realpath(os.path.join(r, file_name))]
                 } for r, d, f in os.walk(CONTRACTS_DIR) for file_name in f
+            },
+            'settings': {
+                'outputSelection': {
+                    "*": {
+                        "": [
+                            "legacyAST",
+                            "ast"
+                        ],
+                        "*": [
+                            "abi",
+                            "evm.bytecode.object",
+                            "evm.bytecode.sourceMap",
+                            "evm.deployedBytecode.object",
+                            "evm.deployedBytecode.sourceMap"
+                        ]
+                    }
+                }
             }
         }
 
