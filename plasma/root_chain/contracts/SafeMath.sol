@@ -1,4 +1,4 @@
-pragma solidity 0.4.18;
+pragma solidity ^0.4.0;
 
 
 /**
@@ -12,7 +12,7 @@ library SafeMath {
         returns (uint256)
     {
         if (a == 0) {
-        return 0;
+            return 0;
         }
         uint256 c = a * b;
         assert(c / a == b);

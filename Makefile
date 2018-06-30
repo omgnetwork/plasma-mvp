@@ -33,6 +33,7 @@ clean-pyc:
 	find . -name '*.pyo' -exec rm -f {} +
 	find . -name '*~' -exec rm -f {} +
 	find . -name '*pycache__' -exec rm -rf {} +
+	find . -name '.pytest_cache' -exec rm -rf {} +
 
 .PHONY: lint
 lint:
@@ -41,6 +42,7 @@ lint:
 .PHONY: test
 test:
 	python -m pytest
+	find . -name '.pytest_cache' -exec rm -rf {} +
 
 .PHONY: ganache
 ganache:
