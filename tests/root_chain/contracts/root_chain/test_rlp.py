@@ -1,3 +1,7 @@
+"""
+Regression test for bug in RLP decoder.
+"""
+
 import pytest
 import rlp
 
