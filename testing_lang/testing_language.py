@@ -22,18 +22,6 @@ class TestingLanguage(object):
         self.transactions = []
         self.accounts = []
 
-        self.handlers = dict()
-
-        # Register handlers
-        self.register_handler('Deposit', self.deposit)
-        self.register_handler('Transfer', self.transfer)
-        self.register_handler('SubmitBlock', self.submit_block)
-        self.register_handler('Confirm', self.confirm)
-        self.register_handler('Withdraw', self.withdraw)
-
-    def register_handler(self, token, function):
-        self.handlers[token] = function
-
     def get_account(self):
         account = ACCOUNTS[len(self.accounts)]
         self.accounts.append(account)

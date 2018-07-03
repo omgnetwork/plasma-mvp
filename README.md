@@ -32,11 +32,11 @@ Plasma MVP is split into four main parts: `root_chain`, `child_chain`, `client`,
 
 This project has a few pre-installation dependencies.
 
-- [LevelDB](https://github.com/google/leveldb)
+#### [LevelDB](https://github.com/google/leveldb)
 
 Mac:
-```
-$ brew install leveldb
+```sh
+brew install leveldb
 ```
 
 Linux:
@@ -47,32 +47,52 @@ Windows:
 
 First, install [vcpkg](https://github.com/Microsoft/vcpkg). Then,
 
-```
-> vcpkg install leveldb
+```sh
+vcpkg install leveldb
 ```
 
-- [Solidity 0.4.18](https://github.com/ethereum/solidity/releases/tag/v0.4.18)
+
+#### [Solidity](https://solidity.readthedocs.io/en/latest/installing-solidity.html)
 
 Mac:
-```
-$ brew unlink solidity
-$ brew install https://raw.githubusercontent.com/ethereum/homebrew-ethereum/2aea171d7d6901b97d5f1f71bd07dd88ed5dfb42/solidity.rb
+```sh
+brew update
+brew upgrade
+brew tap ethereum/ethereum
+brew install solidity
 ```
 
 Linux:
-```
-$ wget https://github.com/ethereum/solidity/releases/download/v0.4.18/solc-static-linux
-$ chmod +x ./solc-static-linux
-$ sudo mv solc-static-linux /usr/bin/solc
+```sh
+sudo add-apt-repository ppa:ethereum/ethereum
+sudo apt-get update
+sudo apt-get install solc
 ```
 
 Windows:
 
-Follow [this guide](https://solidity.readthedocs.io/en/v0.4.21/installing-solidity.html#prerequisites-windows).
+Follow [this guide](https://solidity.readthedocs.io/en/latest/installing-solidity.html#prerequisites-windows)
 
-- [Python 3.2+](https://www.python.org/downloads/)
 
-It's also recommended to run [`ganache-cli`](https://github.com/trufflesuite/ganache-cli) when developing, testing, or playing around. This will allow you to receive near instant feedback.
+#### [Python 3.2+](https://www.python.org/downloads/)
+
+Mac:
+```sh
+brew install python
+```
+
+Linux:
+```sh
+sudo apt-get install software-properties-common
+sudo add-apt-repository ppa:deadsnakes/ppa
+sudo apt-get update
+sudo apt-get install python3
+```
+
+Windows:
+```sh
+choco install python
+```
 
 ### Installation
 
