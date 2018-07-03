@@ -8,7 +8,7 @@ from plasma.child_chain.child_chain import ChildChain
 from plasma.child_chain.transaction import Transaction, UnsignedTransaction
 from plasma.utils.merkle.fixed_merkle import FixedMerkle
 from plasma.utils.utils import confirm_tx
-from .constants import AUTHORITY, ACCOUNTS, NULL_ADDRESS
+from .constants import AUTHORITY, ACCOUNTS, NULL_ADDRESS, NULL_ADDRESS_HEX
 
 class TestingLanguage(object):
 
@@ -139,7 +139,7 @@ class TestingLanguage(object):
 
             self.root_chain.transact({
                 'from': exitor['address']
-            }).startDepositExit(utxo_pos + 1, NULL_ADDRESS, deposit_amount)
+            }).startDepositExit(utxo_pos + 1, NULL_ADDRESS_HEX, deposit_amount)
         else:
             output_block = self.child_chain.blocks[blknum]
             hashed_transaction_set = [transaction.merkle_hash for transaction in output_block.transaction_set]

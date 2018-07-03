@@ -43,4 +43,6 @@ ACCOUNTS = [
         'key': u.normalize_key(b'484eb2f0465e7357575f05bf5af5e77cb4b678fb774dd127d9d99e3d31c5f80e')
     }
 ]
+
 NULL_ADDRESS = b'\x00' * 20
+NULL_ADDRESS_HEX = '0x' + NULL_ADDRESS.hex()
