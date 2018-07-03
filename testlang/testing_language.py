@@ -1,21 +1,16 @@
-import re
 import time
 import rlp
-from inspect import signature
-from web3 import Web3, HTTPProvider
 from plasma.root_chain.deployer import Deployer
 from plasma.child_chain.child_chain import ChildChain
-from plasma.child_chain.transaction import Transaction, UnsignedTransaction
-from plasma.utils.merkle.fixed_merkle import FixedMerkle
-from plasma.utils.utils import confirm_tx
-from .constants import AUTHORITY, ACCOUNTS, NULL_ADDRESS, NULL_ADDRESS_HEX
+from plasma_core.transaction import Transaction, UnsignedTransaction
+from plasma_core.utils.merkle.fixed_merkle import FixedMerkle
+from plasma_core.utils.utils import confirm_tx
+from plasma_core.constants import AUTHORITY, ACCOUNTS, NULL_ADDRESS, NULL_ADDRESS_HEX
+
 
 class TestingLanguage(object):
 
-    TOKEN_PATTERN = r'([A-Za-z]*)([0-9]*)\[(.*?)\]'
-
     def __init__(self):
-        self.w3 = Web3(HTTPProvider('http://localhost:8545'))
         self.root_chain = Deployer().deploy_contract('RootChain', concise=False)
         self.child_chain = ChildChain(AUTHORITY['address'], self.root_chain)
 
@@ -94,7 +89,6 @@ class TestingLanguage(object):
             'is_deposit': False
         })
         return len(self.transactions) - 1
-
 
     def submit_block(self, signatory=AUTHORITY):
         signing_key = None

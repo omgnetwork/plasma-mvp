@@ -1,5 +1,5 @@
 from ethereum.utils import sha3
-
+from plasma_core.constants import NULL_HASH
 from .exceptions import MemberNotExistException
 from .node import Node
 
@@ -19,7 +19,7 @@ class FixedMerkle(object):
 
         if not hashed:
             leaves = [sha3(leaf) for leaf in leaves]
-        self.leaves = leaves + [b'\x00' * 32] * (self.leaf_count - len(leaves))
+        self.leaves = leaves + [NULL_HASH] * (self.leaf_count - len(leaves))
         self.tree = [self.create_nodes(self.leaves)]
         self.create_tree(self.tree[0])
 

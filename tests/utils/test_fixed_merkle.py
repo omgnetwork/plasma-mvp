@@ -1,20 +1,21 @@
 import pytest
 from ethereum.utils import sha3
-from plasma.utils.merkle.fixed_merkle import FixedMerkle
-from plasma.utils.utils import get_empty_merkle_tree_hash
+from plasma_core.constants import NULL_HASH
+from plasma_core.utils.merkle.fixed_merkle import FixedMerkle
+from plasma_core.utils.utils import get_empty_merkle_tree_hash
 
 
 def test_initial_state():
-    assert FixedMerkle(2).leaves == [b'\x00' * 32] * 4
-    assert FixedMerkle(3).leaves == [b'\x00' * 32] * 8
-    assert FixedMerkle(12).leaves == [b'\x00' * 32] * (2**12)
+    assert FixedMerkle(2).leaves == [NULL_HASH] * 4
+    assert FixedMerkle(3).leaves == [NULL_HASH] * 8
+    assert FixedMerkle(12).leaves == [NULL_HASH] * (2**12)
 
 
 def test_initialize_with_leaves():
     leaves_1 = [b'a', b'c', b'c']
     leaves_2 = [b'a', b'c', b'c', b'd', b'e']
-    assert FixedMerkle(2, leaves_1, True).leaves == leaves_1 + [b'\x00' * 32]
-    assert FixedMerkle(3, leaves_2, True).leaves == leaves_2 + [b'\x00' * 32] * 3
+    assert FixedMerkle(2, leaves_1, True).leaves == leaves_1 + [NULL_HASH]
+    assert FixedMerkle(3, leaves_2, True).leaves == leaves_2 + [NULL_HASH] * 3
 
 
 def test_initialize_with_leaves_more_than_depth_permits():
@@ -26,7 +27,7 @@ def test_initialize_with_leaves_more_than_depth_permits():
 
 
 def test_hash_empty_tree():
-    root_1 = sha3(b'\x00' * 32 + b'\x00' * 32)
+    root_1 = sha3(NULL_HASH + NULL_HASH)
     root_2 = sha3(root_1 + root_1)
     assert FixedMerkle(1, [], True).root == root_1
     assert FixedMerkle(2, [], True).root == root_2

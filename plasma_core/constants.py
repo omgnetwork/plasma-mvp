@@ -25,7 +25,7 @@ ACCOUNTS = [
     {
         'address': '0xF05B4B746AAd830062505AD0cFd3619917484E46',
         'key': u.normalize_key(b'e3d66a68573a85734e80d3de47b82e13374c2a026f219cb766978510a8b8697e')
-    },  
+    },
     {
         'address': '0x81A9bfA79598f1536B4918A6556e9855c5E141d5',
         'key': u.normalize_key(b'81e244b79cef097c187d9299a2fc3a680cf1d2637fb7463ca7aa70445a0a0410')
@@ -44,5 +44,8 @@ ACCOUNTS = [
     }
 ]
 
-NULL_ADDRESS = b'\x00' * 20
+NULL_BYTE = b'\x00'
+NULL_HASH = NULL_BYTE * 32
+NULL_SIGNATURE = NULL_BYTE * 65
+NULL_ADDRESS = NULL_BYTE * 20
 NULL_ADDRESS_HEX = '0x' + NULL_ADDRESS.hex()

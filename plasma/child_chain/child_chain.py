@@ -1,16 +1,14 @@
 import rlp
 from ethereum import utils
-
-from plasma.utils.utils import unpack_utxo_pos
-from .block import Block
+from plasma_core.constants import NULL_ADDRESS, NULL_SIGNATURE
+from plasma_core.utils.utils import unpack_utxo_pos
+from plasma_core.block import Block
+from plasma_core.transaction import Transaction
 from .exceptions import (InvalidBlockMerkleException,
                          InvalidBlockSignatureException,
                          InvalidTxSignatureException, TxAlreadySpentException,
                          TxAmountMismatchException)
-from .transaction import Transaction
 from .root_event_listener import RootEventListener
-
-ZERO_ADDRESS = b'\x00' * 20
 
 
 class ChildChain(object):
@@ -44,9 +42,9 @@ class ChildChain(object):
 
         deposit_tx = Transaction(0, 0, 0,
                                  0, 0, 0,
-                                 ZERO_ADDRESS,
+                                 NULL_ADDRESS,
                                  depositor, amount,
-                                 ZERO_ADDRESS, 0)
+                                 NULL_ADDRESS, 0)
         deposit_block = Block([deposit_tx])
 
         self.blocks[blknum] = deposit_block
@@ -77,11 +75,11 @@ class ChildChain(object):
             transaction = self.blocks[blknum].transaction_set[txindex]
 
             if oindex == 0:
-                valid_signature = tx.sig1 != b'\x00' * 65 and transaction.newowner1 == tx.sender1
+                valid_signature = tx.sig1 != NULL_SIGNATURE and transaction.newowner1 == tx.sender1
                 spent = transaction.spent1
                 input_amount += transaction.amount1
             else:
-                valid_signature = tx.sig2 != b'\x00' * 65 and transaction.newowner2 == tx.sender2
+                valid_signature = tx.sig2 != NULL_SIGNATURE and transaction.newowner2 == tx.sender2
                 spent = transaction.spent2
                 input_amount += transaction.amount2
             if spent:
@@ -106,7 +104,7 @@ class ChildChain(object):
         if block.merklize_transaction_set() != self.current_block.merklize_transaction_set():
             raise InvalidBlockMerkleException('input block merkle mismatch with the current block')
 
-        valid_signature = block.sig != b'\x00' * 65 and block.sender == bytes.fromhex(self.authority[2:])
+        valid_signature = block.sig != NULL_SIGNATURE and block.sender == bytes.fromhex(self.authority[2:])
         if not valid_signature:
             raise InvalidBlockSignatureException('failed to submit block')
 

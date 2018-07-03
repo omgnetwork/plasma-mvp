@@ -3,12 +3,11 @@ init:
 
 .PHONY: help
 help:
-	@echo "root-chain" - starts the root chain
-	@echo "child-chain"  starts the child chain
-	@echo "clean-build - remove build artifacts"
-	@echo "clean-pyc - remove Python file artifacts"
-	@echo "lint - check style with flake8"
-	@echo "test - runs repos tests using pytest"
+	@echo "root-chain  - deploys the root chain contract"
+	@echo "child-chain - starts the child chain"
+	@echo "clean       - remove build artifacts"
+	@echo "lint        - check style with flake8"
+	@echo "test        - run tests with pytest"
 
 .PHONY: root-chain
 root-chain:
@@ -37,12 +36,16 @@ clean-pyc:
 
 .PHONY: lint
 lint:
-	flake8 plasma tests
+	flake8 plasma plasma_core testlang tests
 
 .PHONY: test
 test:
 	python -m pytest
 	find . -name '.pytest_cache' -exec rm -rf {} +
+
+.PHONY: dev
+dev:
+	pip install pytest pylint flake8
 
 .PHONY: ganache
 ganache:
