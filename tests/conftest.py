@@ -72,4 +72,6 @@ def bytes_helper():
 
 @pytest.fixture()
 def test_lang():
-    return TestingLanguage()
+    t = TestingLanguage()
+    yield t
+    t.child_chain.event_listener.stop_all()

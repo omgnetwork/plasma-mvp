@@ -43,3 +43,14 @@ def get_sender(hash, sig):
     s = u.bytes_to_int(sig[32:64])
     pub = u.ecrecover_to_pub(hash, v, r, s)
     return u.sha3(pub)[-20:]
+
+
+def unpack_utxo_pos(utxo_pos):
+    blknum = utxo_pos // 1000000000
+    txindex = (utxo_pos % 1000000000) // 10000
+    oindex = utxo_pos - blknum * 1000000000 - txindex * 10000
+    return (blknum, txindex, oindex)
+
+
+def pack_utxo_pos(blknum, txindex, oindex):
+    return (blknum * 1000000000) + (txindex * 10000) + (oindex * 1)

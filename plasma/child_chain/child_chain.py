@@ -1,12 +1,14 @@
 import rlp
 from ethereum import utils
 
+from plasma.utils.utils import unpack_utxo_pos
 from .block import Block
 from .exceptions import (InvalidBlockMerkleException,
                          InvalidBlockSignatureException,
                          InvalidTxSignatureException, TxAlreadySpentException,
                          TxAmountMismatchException)
 from .transaction import Transaction
+from .root_event_listener import RootEventListener
 
 ZERO_ADDRESS = b'\x00' * 20
 
@@ -22,12 +24,20 @@ class ChildChain(object):
         self.current_block = Block()
         self.pending_transactions = []
 
-        # Register for deposit event listener
-        deposit_filter = self.root_chain.on('Deposit')
-        deposit_filter.watch(self.apply_deposit)
+        self.event_listener = RootEventListener(root_chain, confirmations=0)
+
+        # Register event listeners
+        self.event_listener.on('Deposit', self.apply_deposit)
+        self.event_listener.on('ExitStarted', self.apply_exit)
+
+    def apply_exit(self, event):
+        event_args = event['args']
+        utxo_pos = event_args['utxoPos']
+        self.mark_utxo_spent(*unpack_utxo_pos(utxo_pos))
 
     def apply_deposit(self, event):
         event_args = event['args']
+
         depositor = event_args['depositor']
         amount = event_args['amount']
         blknum = event_args['depositBlock']
@@ -96,11 +106,11 @@ class ChildChain(object):
         if block.merklize_transaction_set() != self.current_block.merklize_transaction_set():
             raise InvalidBlockMerkleException('input block merkle mismatch with the current block')
 
-        valid_signature = block.sig != b'\x00' * 65 and block.sender == self.authority
+        valid_signature = block.sig != b'\x00' * 65 and block.sender == bytes.fromhex(self.authority[2:])
         if not valid_signature:
             raise InvalidBlockSignatureException('failed to submit block')
 
-        self.root_chain.transact({'from': '0x' + self.authority.hex()}).submitBlock(block.merkle.root)
+        self.root_chain.transact({'from': self.authority}).submitBlock(block.merkle.root)
         # TODO: iterate through block and validate transactions
         self.blocks[self.current_block_number] = self.current_block
         self.current_block_number += self.child_block_interval
