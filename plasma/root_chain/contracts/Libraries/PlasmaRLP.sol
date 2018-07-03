@@ -6,8 +6,9 @@ import "./RLP.sol";
 library PlasmaRLP {
 
     struct exitingTx {
-        uint256 amount;
         address exitor;
+        address token;
+        uint256 amount;
         uint256 inputCount;
     }
 
@@ -33,8 +34,9 @@ library PlasmaRLP {
     {
         var txList = RLP.toList(RLP.toRlpItem(exitingTxBytes));
         return exitingTx({
-            amount: RLP.toUint(txList[7 + 2 * oindex]),
-            exitor: RLP.toAddress(txList[6 + 2 * oindex]),
+            exitor: RLP.toAddress(txList[7 + 2 * oindex]),
+            token: RLP.toAddress(txList[6]),
+            amount: RLP.toUint(txList[8 + 2 * oindex]),
             inputCount: RLP.toUint(txList[0]) * RLP.toUint(txList[3])
         });
     }

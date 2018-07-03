@@ -45,6 +45,7 @@ def deposit(client, amount, address):
 @click.argument('blknum2', type=int)
 @click.argument('txindex2', type=int)
 @click.argument('oindex2', type=int)
+@click.argument('cur12', default="0x0")
 @click.argument('newowner1')
 @click.argument('amount1', type=int)
 @click.argument('newowner2')
@@ -56,10 +57,13 @@ def deposit(client, amount, address):
 def sendtx(client,
            blknum1, txindex1, oindex1,
            blknum2, txindex2, oindex2,
+           cur12,
            amount1, newowner1,
            amount2, newowner2,
            fee,
            key1, key2):
+    if cur12 == "0x0":
+        cur12 = NULL_ADDRESS
     if newowner1 == "0x0":
         newowner1 = NULL_ADDRESS
     if newowner2 == "0x0":
@@ -68,6 +72,7 @@ def sendtx(client,
     # Form a transaction
     tx = Transaction(blknum1, txindex1, oindex1,
                      blknum2, txindex2, oindex2,
+                     utils.normalize_address(cur12),
                      utils.normalize_address(newowner1), amount1,
                      utils.normalize_address(newowner2), amount2,
                      fee)

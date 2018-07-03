@@ -52,6 +52,7 @@ class TestingLanguage(object):
 
         tx = Transaction(0, 0, 0,
                          0, 0, 0,
+                         NULL_ADDRESS,
                          account['address'], amount,
                          NULL_ADDRESS, 0)
 
@@ -64,7 +65,7 @@ class TestingLanguage(object):
 
     def transfer(self,
                  input1, oindex1, newowner1, amount1, signatory1,
-                 input2=None, oindex2=0, newowner2=None, amount2=None, signatory2=None):
+                 input2=None, oindex2=0, newowner2=None, amount2=None, signatory2=None, cur12=NULL_ADDRESS):
         newowner_address1 = newowner1['address']
         amount1 = int(amount1)
 
@@ -83,6 +84,7 @@ class TestingLanguage(object):
 
         tx = Transaction(blknum1, txindex1, oindex1,
                          blknum2, txindex2, oindex2,
+                         cur12,
                          newowner_address1, amount1,
                          newowner_address2, amount2)
 
@@ -149,7 +151,7 @@ class TestingLanguage(object):
 
             self.root_chain.transact({
                 'from': exitor['address']
-            }).startDepositExit(utxo_pos + 1, deposit_amount)
+            }).startDepositExit(utxo_pos + 1, NULL_ADDRESS, deposit_amount)
         else:
             output_block = self.child_chain.blocks[blknum]
             hashed_transaction_set = [transaction.merkle_hash for transaction in output_block.transaction_set]
