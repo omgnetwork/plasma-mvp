@@ -3,11 +3,11 @@ pragma solidity 0.4.18;
 import "./ByteUtils.sol";
 import "./ECRecovery.sol";
 
+
 /**
  * @title Validate
  * @dev Checks that the signatures on a transaction are valid
  */
-
 library Validate {
     function checkSigs(bytes32 txHash, bytes32 rootHash, uint256 blknum2, bytes sigs)
         internal
