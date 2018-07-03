@@ -3,6 +3,8 @@
 
 # Development
 env/
+.vscode/
+.DS_Store
 
 # Distibution
 dist/

@@ -1,10 +1,10 @@
-pragma solidity 0.4.18;
+pragma solidity ^0.4.0;
+
 
 /**
  * @title Math
  * @dev Math operations with safety checks that throw on error
  */
-
 library Math {
 
     function max(uint256 a, uint256 b)
