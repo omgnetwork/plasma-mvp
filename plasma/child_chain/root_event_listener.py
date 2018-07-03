@@ -127,7 +127,7 @@ class RootEventListener(object):
         # HACK: Be able to JSON serialize the AttributeDict/HexBytes objects https://github.com/ethereum/web3.py/issues/782
 
         class CustomJsonEncoder(json.JSONEncoder):
-            def default(self, obj): # pylint: disable=E0202
+            def default(self, obj):   # pylint: disable=E0202
                 if isinstance(obj, AttributeDict):
                     return obj.__dict__
                 if isinstance(obj, HexBytes):
