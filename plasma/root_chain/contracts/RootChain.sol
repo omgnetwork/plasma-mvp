@@ -25,18 +25,24 @@ contract RootChain {
     event Deposit(
         address indexed depositor,
         uint256 indexed depositBlock,
+        address token,
         uint256 amount
     );
 
     event ExitStarted(
         address indexed exitor,
         uint256 indexed utxoPos,
+        address token,
         uint256 amount
     );
 
     event BlockSubmitted(
         bytes32 root,
         uint256 timestamp
+    );
+
+    event TokenAdded(
+        address token
     );
 
 
@@ -54,11 +60,11 @@ contract RootChain {
 
     mapping (uint256 => ChildBlock) public childChain;
     mapping (uint256 => Exit) public exits;
-
-    PriorityQueue exitsQueue;
+    mapping (address => address) public exitsQueues;
 
     struct Exit {
         address owner;
+        address token;
         uint256 amount;
     }
 
@@ -89,7 +95,9 @@ contract RootChain {
         currentChildBlock = CHILD_BLOCK_INTERVAL;
         currentDepositBlock = 1;
         currentFeeExit = 1;
-        exitsQueue = new PriorityQueue();
+        // Support only ETH on deployment; other tokens need
+        // to be added explicitly.
+        exitsQueues[address(0)] = address(new PriorityQueue());
     }
 
 
@@ -127,7 +135,7 @@ contract RootChain {
         // Only allow up to CHILD_BLOCK_INTERVAL deposits per child block.
         require(currentDepositBlock < CHILD_BLOCK_INTERVAL);
 
-        bytes32 root = keccak256(msg.sender, msg.value);
+        bytes32 root = keccak256(msg.sender, address(0), msg.value);
         uint256 depositBlock = getDepositBlock();
         childChain[depositBlock] = ChildBlock({
             root: root,
@@ -135,15 +143,16 @@ contract RootChain {
         });
         currentDepositBlock = currentDepositBlock.add(1);
 
-        emit Deposit(msg.sender, depositBlock, msg.value);
+        emit Deposit(msg.sender, depositBlock, address(0), msg.value);
     }
 
     /**
      * @dev Starts an exit from a deposit.
      * @param _depositPos UTXO position of the deposit.
+     * @param _token Token type to deposit.
      * @param _amount Deposit amount.
      */
-    function startDepositExit(uint256 _depositPos, uint256 _amount)
+    function startDepositExit(uint256 _depositPos, address _token, uint256 _amount)
         public
     {
         uint256 blknum = _depositPos / 1000000000;
@@ -153,21 +162,22 @@ contract RootChain {
 
         // Validate the given owner and amount.
         bytes32 root = childChain[blknum].root;
-        bytes32 depositHash = keccak256(msg.sender, _amount);
+        bytes32 depositHash = keccak256(msg.sender, _token, _amount);
         require(root == depositHash);
 
-        addExitToQueue(_depositPos, msg.sender, _amount, childChain[blknum].timestamp);
+        addExitToQueue(_depositPos, msg.sender, _token, _amount, childChain[blknum].timestamp);
     }
 
     /**
      * @dev Allows the operator withdraw any allotted fees. Starts an exit to avoid theft.
+     * @param _token Token to withdraw.
      * @param _amount Amount in fees to withdraw.
      */
-    function startFeeExit(uint256 _amount)
+    function startFeeExit(address _token, uint256 _amount)
         public
         onlyOperator
     {
-        addExitToQueue(currentFeeExit, msg.sender, _amount, block.timestamp + 1);
+        addExitToQueue(currentFeeExit, msg.sender, _token, _amount, block.timestamp + 1);
         currentFeeExit = currentFeeExit.add(1);
     }
 
@@ -200,7 +210,7 @@ contract RootChain {
         require(Validate.checkSigs(keccak256(_txBytes), root, exitingTx.inputCount, _sigs));
         require(merkleHash.checkMembership(txindex, root, _proof));
 
-        addExitToQueue(_utxoPos, exitingTx.exitor, exitingTx.amount, childChain[blknum].timestamp);
+        addExitToQueue(_utxoPos, exitingTx.exitor, exitingTx.token, exitingTx.amount, childChain[blknum].timestamp);
     }
 
     /**
@@ -240,22 +250,28 @@ contract RootChain {
 
     /**
      * @dev Processes any exits that have completed the challenge period. 
+     * @param _token Token type to process.
      */
-    function finalizeExits()
+    function finalizeExits(address _token)
         public
     {
         uint256 utxoPos;
         uint256 exitable_at;
-        (utxoPos, exitable_at) = getNextExit();
+        (utxoPos, exitable_at) = getNextExit(_token);
         Exit memory currentExit = exits[utxoPos];
+        PriorityQueue queue = PriorityQueue(exitsQueues[_token]);
         while (exitable_at < block.timestamp) {
             currentExit = exits[utxoPos];
+
+            // FIXME: handle ERC-20 transfer
+            require(address(0) == _token);
+
             currentExit.owner.transfer(currentExit.amount);
-            exitsQueue.delMin();
+            queue.delMin();
             delete exits[utxoPos].owner;
 
-            if (exitsQueue.currentSize() > 0) {
-                (utxoPos, exitable_at) = getNextExit();
+            if (queue.currentSize() > 0) {
+                (utxoPos, exitable_at) = getNextExit(_token);
             } else {
                 return;
             }
@@ -300,21 +316,22 @@ contract RootChain {
     function getExit(uint256 _utxoPos)
         public
         view
-        returns (address, uint256)
+        returns (address, address, uint256)
     {
-        return (exits[_utxoPos].owner, exits[_utxoPos].amount);
+        return (exits[_utxoPos].owner, exits[_utxoPos].token, exits[_utxoPos].amount);
     }
 
     /**
      * @dev Determines the next exit to be processed.
+     * @param _token Asset type to be exited.
      * @return A tuple of the position and time when this exit can be processed.
      */
-    function getNextExit()
+    function getNextExit(address _token)
         public
         view
         returns (uint256, uint256)
     {
-        uint256 priority = exitsQueue.getMin();
+        uint256 priority = PriorityQueue(exitsQueues[_token]).getMin();
         uint256 utxoPos = uint256(uint128(priority));
         uint256 exitable_at = priority >> 128;
         return (utxoPos, exitable_at);
@@ -327,33 +344,41 @@ contract RootChain {
 
     /**
      * @dev Adds an exit to the exit queue.
-     * @param utxoPos Position of the UTXO in the child chain.
-     * @param exitor Owner of the UTXO.
-     * @param amount Amount to be exited.
-     * @param created_at Time when the UTXO was created.
+     * @param _utxoPos Position of the UTXO in the child chain.
+     * @param _exitor Owner of the UTXO.
+     * @param _token Token to be exited.
+     * @param _amount Amount to be exited.
+     * @param _created_at Time when the UTXO was created.
      */
     function addExitToQueue(
-        uint256 utxoPos,
-        address exitor,
-        uint256 amount,
-        uint256 created_at
+        uint256 _utxoPos,
+        address _exitor,
+        address _token,
+        uint256 _amount,
+        uint256 _created_at
     )
         private
     {
+        // Check that we're exiting a known token.
+        require(exitsQueues[_token] != address(0));
+
         // Calculate priority.
-        uint256 exitable_at = Math.max(created_at + 2 weeks, block.timestamp + 1 weeks);
-        uint256 priority = exitable_at << 128 | utxoPos;
+        uint256 exitable_at = Math.max(_created_at + 2 weeks, block.timestamp + 1 weeks);
+        uint256 priority = exitable_at << 128 | _utxoPos;
         
         // Check exit is valid and doesn't already exist.
-        require(amount > 0);
-        require(exits[utxoPos].amount == 0);
+        require(_amount > 0);
+        require(exits[_utxoPos].amount == 0);
 
-        exitsQueue.insert(priority);
-        exits[utxoPos] = Exit({
-            owner: exitor,
-            amount: amount
+        PriorityQueue queue = PriorityQueue(exitsQueues[_token]);
+        queue.insert(priority);
+
+        exits[_utxoPos] = Exit({
+            owner: _exitor,
+            token: _token,
+            amount: _amount
         });
 
-        emit ExitStarted(msg.sender, utxoPos, amount);
+        emit ExitStarted(msg.sender, _utxoPos, _token, _amount);
     }
 }

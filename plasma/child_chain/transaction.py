@@ -13,6 +13,7 @@ class Transaction(rlp.Serializable):
         ('blknum2', big_endian_int),
         ('txindex2', big_endian_int),
         ('oindex2', big_endian_int),
+        ('cur12', utils.address),
         ('newowner1', utils.address),
         ('amount1', big_endian_int),
         ('newowner2', utils.address),
@@ -24,6 +25,7 @@ class Transaction(rlp.Serializable):
     def __init__(self,
                  blknum1, txindex1, oindex1,
                  blknum2, txindex2, oindex2,
+                 cur12,
                  newowner1, amount1,
                  newowner2, amount2,
                  sig1=b'\x00' * 65,
@@ -39,6 +41,9 @@ class Transaction(rlp.Serializable):
         self.txindex2 = txindex2
         self.oindex2 = oindex2
         self.sig2 = sig2
+
+        # Token addresses
+        self.cur12 = utils.normalize_address(cur12)
 
         # Outputs
         self.newowner1 = utils.normalize_address(newowner1)
