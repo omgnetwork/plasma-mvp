@@ -58,7 +58,7 @@ def get_contract(t, u):
         bytecode = u.decode_hex(hexcode)
         ct = ContractTranslator(abi)
         code = bytecode + (ct.encode_constructor_arguments(args) if args else b'')
-        address = t.chain.tx(sender=sender, to=b'', startgas=(4 * 10 ** 6), value=0, data=code)
+        address = t.chain.tx(sender=sender, to=b'', startgas=(4 * 10 ** 6 + 5 * 10 ** 5), value=0, data=code)
         return t.ABIContract(t.chain, abi, address)
     return create_contract
 

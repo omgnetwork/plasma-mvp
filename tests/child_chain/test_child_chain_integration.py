@@ -10,8 +10,8 @@ def test_deposit(test_lang):
 
     deposit_id = test_lang.deposit(owner_1, 100)
 
-    tx = Transaction(0, 0, 0, 0, 0, 0, owner_1['address'], 100, NULL_ADDRESS, 0, 0)
-    deposit_hash = Web3.soliditySha3(['address', 'uint256'], [owner_1['address'], 100])
+    tx = Transaction(0, 0, 0, 0, 0, 0, NULL_ADDRESS, owner_1['address'], 100, NULL_ADDRESS, 0, 0)
+    deposit_hash = bytes.fromhex(Web3.soliditySha3(['address', 'address', 'uint256'], [owner_1['address'], '0x' + '00' * 20, 100])[2:])
 
     assert test_lang.transactions[deposit_id]['tx'].hash == tx.hash
 
@@ -30,6 +30,7 @@ def test_transfer(test_lang):
 
     tx = Transaction(1, 0, 0,
                      0, 0, 0,
+                     NULL_ADDRESS,
                      owner_2['address'], 100,
                      NULL_ADDRESS, 0,
                      0)
@@ -73,8 +74,9 @@ def test_withdraw_transfer(test_lang):
     test_lang.withdraw(transfer_id, 0, owner_2)
 
     exit_data = test_lang.root_chain.call().getExit(1000000000000)
-    assert exit_data[0].lower() == owner_2['address'].lower()
-    assert exit_data[1] == 100
+    assert exit_data[0].lower() == owner_2['address']
+    assert exit_data[1] == '0x' + '00' * 20
+    assert exit_data[2] == 100
 
 
 def test_withdraw_deposit(test_lang):
@@ -84,5 +86,6 @@ def test_withdraw_deposit(test_lang):
     test_lang.withdraw(deposit_id, 0, owner_1)
 
     exit_data = test_lang.root_chain.call().getExit(1000000001)
-    assert exit_data[0].lower() == owner_1['address'].lower()
-    assert exit_data[1] == 100
+    assert exit_data[0].lower() == owner_1['address']
+    assert exit_data[1] == '0x' + '00' * 20
+    assert exit_data[2] == 100

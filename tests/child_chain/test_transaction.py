@@ -10,6 +10,7 @@ def test_transaction(t):
     key1, key2 = t.k1, t.k2
     tx = Transaction(blknum1, txindex1, oindex1,
                      blknum2, txindex2, oindex2,
+                     b'\x00' * 20,
                      newowner1, amount1,
                      newowner2, amount2)
     assert tx.blknum1 == blknum1
