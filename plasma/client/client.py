@@ -19,9 +19,11 @@ class Client(object):
                            blknum2=0, txindex2=0, oindex2=0,
                            newowner1=b'\x00' * 20, amount1=0,
                            newowner2=b'\x00' * 20, amount2=0,
+                           cur12=b'\x00' * 20,
                            fee=0):
         return Transaction(blknum1, txindex1, oindex1,
                            blknum2, txindex2, oindex2,
+                           cur12,
                            newowner1, amount1,
                            newowner2, amount2,
                            fee)

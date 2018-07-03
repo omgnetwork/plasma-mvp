@@ -8,6 +8,8 @@ from .exceptions import (InvalidBlockMerkleException,
                          TxAmountMismatchException)
 from .transaction import Transaction
 
+ZERO_ADDRESS = b'\x00' * 20
+
 
 class ChildChain(object):
 
@@ -32,9 +34,9 @@ class ChildChain(object):
 
         deposit_tx = Transaction(0, 0, 0,
                                  0, 0, 0,
+                                 ZERO_ADDRESS,
                                  depositor, amount,
-                                 b'\x00' * 20, 0,
-                                 0)
+                                 ZERO_ADDRESS, 0)
         deposit_block = Block([deposit_tx])
 
         self.blocks[blknum] = deposit_block
