@@ -1,7 +1,7 @@
 import rlp
 from ethereum import utils
 from plasma_core.constants import NULL_ADDRESS, NULL_SIGNATURE
-from plasma_core.utils.utils import unpack_utxo_pos
+from plasma_core.utils.transactions import decode_utxo_id
 from plasma_core.block import Block
 from plasma_core.transaction import Transaction
 from .exceptions import (InvalidBlockMerkleException,
@@ -31,7 +31,7 @@ class ChildChain(object):
     def apply_exit(self, event):
         event_args = event['args']
         utxo_pos = event_args['utxoPos']
-        self.mark_utxo_spent(*unpack_utxo_pos(utxo_pos))
+        self.mark_utxo_spent(*decode_utxo_id(utxo_pos))
 
     def apply_deposit(self, event):
         event_args = event['args']

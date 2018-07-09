@@ -1,7 +1,7 @@
 import rlp
 from rlp.sedes import big_endian_int, binary
 from ethereum import utils
-from plasma_core.utils.utils import get_sender, sign
+from plasma_core.utils.signatures import get_signer, sign
 from plasma_core.constants import NULL_SIGNATURE
 
 
@@ -81,11 +81,11 @@ class Transaction(rlp.Serializable):
 
     @property
     def sender1(self):
-        return get_sender(self.hash, self.sig1)
+        return get_signer(self.hash, self.sig1)
 
     @property
     def sender2(self):
-        return get_sender(self.hash, self.sig2)
+        return get_signer(self.hash, self.sig2)
 
 
 UnsignedTransaction = Transaction.exclude(['sig1', 'sig2'])
