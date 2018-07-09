@@ -1,10 +1,11 @@
 import rlp
 from ethereum import utils
 from web3 import HTTPProvider
-from plasma.child_chain.block import Block
+from plasma_core.block import Block
+from plasma_core.transaction import Transaction, UnsignedTransaction
+from plasma_core.constants import NULL_ADDRESS
 from plasma.config import plasma_config
 from plasma.root_chain.deployer import Deployer
-from plasma.child_chain.transaction import Transaction, UnsignedTransaction
 from .child_chain_service import ChildChainService
 
 
@@ -17,9 +18,9 @@ class Client(object):
 
     def create_transaction(self, blknum1=0, txindex1=0, oindex1=0,
                            blknum2=0, txindex2=0, oindex2=0,
-                           newowner1=b'\x00' * 20, amount1=0,
-                           newowner2=b'\x00' * 20, amount2=0,
-                           cur12=b'\x00' * 20,
+                           newowner1=NULL_ADDRESS, amount1=0,
+                           newowner2=NULL_ADDRESS, amount2=0,
+                           cur12=NULL_ADDRESS,
                            fee=0):
         return Transaction(blknum1, txindex1, oindex1,
                            blknum2, txindex2, oindex2,

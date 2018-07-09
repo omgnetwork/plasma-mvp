@@ -1,4 +1,5 @@
-from plasma.child_chain.transaction import Transaction
+from plasma_core.transaction import Transaction
+from plasma_core.constants import NULL_ADDRESS, NULL_SIGNATURE
 
 
 def test_transaction(t):
@@ -10,7 +11,7 @@ def test_transaction(t):
     key1, key2 = t.k1, t.k2
     tx = Transaction(blknum1, txindex1, oindex1,
                      blknum2, txindex2, oindex2,
-                     b'\x00' * 20,
+                     NULL_ADDRESS,
                      newowner1, amount1,
                      newowner2, amount2)
     assert tx.blknum1 == blknum1
@@ -23,8 +24,8 @@ def test_transaction(t):
     assert tx.amount1 == amount1
     assert tx.newowner2 == newowner2
     assert tx.amount2 == amount2
-    assert tx.sig1 == b'\x00' * 65
-    assert tx.sig2 == b'\x00' * 65
+    assert tx.sig1 == NULL_SIGNATURE
+    assert tx.sig2 == NULL_SIGNATURE
     tx.sign1(key1)
     assert tx.sender1 == oldowner1
     tx.sign2(key2)

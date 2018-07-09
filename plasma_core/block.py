@@ -1,9 +1,10 @@
 import rlp
 from rlp.sedes import binary, CountableList
 from ethereum import utils
-from plasma.utils.merkle.fixed_merkle import FixedMerkle
-from plasma.utils.utils import sign, get_sender
-from plasma.child_chain.transaction import Transaction
+from plasma_core.utils.merkle.fixed_merkle import FixedMerkle
+from plasma_core.utils.utils import sign, get_sender
+from plasma_core.transaction import Transaction
+from plasma_core.constants import NULL_SIGNATURE
 
 
 class Block(rlp.Serializable):
@@ -13,7 +14,7 @@ class Block(rlp.Serializable):
         ('sig', binary),
     ]
 
-    def __init__(self, transaction_set=[], sig=b'\x00' * 65):
+    def __init__(self, transaction_set=[], sig=NULL_SIGNATURE):
         self.transaction_set = transaction_set
         self.sig = sig
         self.merkle = None

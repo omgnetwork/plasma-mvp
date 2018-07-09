@@ -1,9 +1,6 @@
 from web3 import Web3
-from plasma.child_chain.transaction import Transaction
-
-
-NULL_ADDRESS = b'\x00' * 20
-NULL_ADDRESS_HEX = '0x' + NULL_ADDRESS.hex()
+from plasma_core.constants import NULL_ADDRESS, NULL_ADDRESS_HEX
+from plasma_core.transaction import Transaction
 
 
 def test_deposit(test_lang):

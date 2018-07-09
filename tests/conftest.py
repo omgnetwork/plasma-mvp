@@ -3,9 +3,9 @@ import pytest
 from ethereum.tools import tester, _solidity
 from ethereum.abi import ContractTranslator
 from ethereum import utils
-from plasma.utils import utils as plasma_utils
+from plasma_core.utils import utils as plasma_utils
 from plasma.root_chain.deployer import Deployer
-from testing_lang.testing_language import TestingLanguage
+from testlang.testing_language import TestingLanguage
 
 
 OWN_DIR = os.path.dirname(os.path.realpath(__file__))

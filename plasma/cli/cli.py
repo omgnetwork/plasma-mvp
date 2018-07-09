@@ -1,15 +1,15 @@
 import click
 from ethereum import utils
-from plasma.utils.utils import confirm_tx
+from plasma_core.constants import NULL_ADDRESS
+from plasma_core.transaction import Transaction
+from plasma_core.utils.utils import confirm_tx
 from plasma.client.client import Client
-from plasma.child_chain.transaction import Transaction
 from plasma.client.exceptions import ChildChainServiceError
 
 
 CONTEXT_SETTINGS = dict(
     help_option_names=['-h', '--help']
 )
-NULL_ADDRESS = b'\x00' * 20
 
 
 @click.group(context_settings=CONTEXT_SETTINGS)

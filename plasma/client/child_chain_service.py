@@ -1,8 +1,8 @@
 import requests
 import rlp
 from plasma.child_chain.child_chain import ChildChain
-from plasma.child_chain.transaction import Transaction
-from plasma.child_chain.block import Block
+from plasma_core.transaction import Transaction
+from plasma_core.block import Block
 from .exceptions import ChildChainServiceError
 
 

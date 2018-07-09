@@ -1,6 +1,7 @@
 import pytest
-from plasma.child_chain.block import Block
-from plasma.utils.utils import sign, get_sender
+from plasma_core.block import Block
+from plasma_core.constants import NULL_SIGNATURE
+from plasma_core.utils.utils import sign, get_sender
 
 
 @pytest.fixture
@@ -10,7 +11,7 @@ def block():
 
 def test_initial_state(block):
     block.transaction_set = []
-    block.sig = b'\x00' * 65
+    block.sig = NULL_SIGNATURE
     block.merkle = None
 
 
