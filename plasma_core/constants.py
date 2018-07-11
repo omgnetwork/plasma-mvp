@@ -1,5 +1,7 @@
 from ethereum import utils as u
 
+CONTRACT_ADDRESS = '0xA3B2a1804203b75b494028966C0f62e677447A39'
+
 AUTHORITY = {
     'address': '0xfd02EcEE62797e75D86BCff1642EB0844afB28c7',
     'key': u.normalize_key(b'3bb369fecdc16b93b99514d8ed9c2e87c5824cf4a6a98d2e8e91b7dd0c063304')
