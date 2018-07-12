@@ -3,6 +3,10 @@ pragma solidity ^0.4.0;
 import "./RLP.sol";
 
 
+/**
+ * @title RLPTest
+ * @dev Regression tests for RLP contract functions
+ */
 contract RLPTest {
     function eight(bytes tx_bytes)
         public
