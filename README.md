@@ -165,7 +165,7 @@ deposit <amount> <address>
 #### Example
 
 ```
-deposit 100 0xfd02ecee62797e75d86bcff1642eb0844afb28c7
+deposit 100 0xfd02EcEE62797e75D86BCff1642EB0844afB28c7
 ```
 
 ### `sendtx`
@@ -183,7 +183,7 @@ sendtx <blknum1> <txindex1> <oindex1> <blknum2> <txindex2> <oindex2> <newowner1>
 #### Example
 
 ```
-send_tx 1 0 0 0 0 0 0xfd02ecee62797e75d86bcff1642eb0844afb28c7 50 0x4b3ec6c9dc67079e82152d6d55d8dd96a8e6aa26 45 5 3bb369fecdc16b93b99514d8ed9c2e87c5824cf4a6a98d2e8e91b7dd0c063304
+send_tx 1 0 0 0 0 0 0xfd02EcEE62797e75D86BCff1642EB0844afB28c7 50 0x4B3eC6c9dC67079E82152d6D55d8dd96a8e6AA26 45 5 3bb369fecdc16b93b99514d8ed9c2e87c5824cf4a6a98d2e8e91b7dd0c063304
 ```
 
 ### `submitblock`
@@ -231,7 +231,7 @@ Withdraws from a deposit.
 #### Usage
 
 ```
-withdrawdeposit 0xfd02ecee62797e75d86bcff1642eb0844afb28c7 1 100
+withdrawdeposit 0xfd02EcEE62797e75D86BCff1642EB0844afB28c7 1 100
 ```
 
 ## CLI Example
@@ -242,12 +242,12 @@ Let's play around a bit:
 
 2. Start by depositing:
 ```
-omg deposit 100 0xfd02ecee62797e75d86bcff1642eb0844afb28c7
+omg deposit 100 0xfd02EcEE62797e75D86BCff1642EB0844afB28c7
 ```
 
 3. Send a transaction:
 ```
-omg sendtx 1 0 0 0 0 0 0xfd02ecee62797e75d86bcff1642eb0844afb28c7 50 0x4b3ec6c9dc67079e82152d6d55d8dd96a8e6aa26 45 5 3bb369fecdc16b93b99514d8ed9c2e87c5824cf4a6a98d2e8e91b7dd0c063304
+omg sendtx 1 0 0 0 0 0 0xfd02EcEE62797e75D86BCff1642EB0844afB28c7 50 0x4B3eC6c9dC67079E82152d6D55d8dd96a8e6AA26 45 5 3bb369fecdc16b93b99514d8ed9c2e87c5824cf4a6a98d2e8e91b7dd0c063304
 ```
 
 4.  Submit the block:
@@ -258,7 +258,7 @@ omg submitblock 3bb369fecdc16b93b99514d8ed9c2e87c5824cf4a6a98d2e8e91b7dd0c063304
 5. Withdraw the original deposit (this is a double spend!):
 
 ```
-omg withdrawdeposit 0xfd02ecee62797e75d86bcff1642eb0844afb28c7 1 100
+omg withdrawdeposit 0xfd02EcEE62797e75D86BCff1642EB0844afB28c7 1 100
 ```
 
 Note: The functionality to challenge double spends from the cli is still being worked on.

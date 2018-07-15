@@ -2,11 +2,11 @@ from werkzeug.wrappers import Request, Response
 from werkzeug.serving import run_simple
 from jsonrpc import JSONRPCResponseManager, dispatcher
 from plasma.child_chain.child_chain import ChildChain
-from plasma.config import plasma_config
 from plasma.root_chain.deployer import Deployer
+from plasma_core.constants import CONTRACT_ADDRESS, AUTHORITY
 
-root_chain = Deployer().get_contract_at_address("RootChain", plasma_config['ROOT_CHAIN_CONTRACT_ADDRESS'], concise=False)
-child_chain = ChildChain(plasma_config['AUTHORITY'], root_chain)
+root_chain = Deployer().get_contract_at_address("RootChain", CONTRACT_ADDRESS, concise=False)
+child_chain = ChildChain(bytes.fromhex(AUTHORITY['address'][2:]), root_chain)
 
 
 @Request.application

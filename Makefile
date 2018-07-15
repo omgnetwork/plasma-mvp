@@ -15,7 +15,7 @@ root-chain:
 
 .PHONY: child-chain
 child-chain:
-	python plasma/child_chain/server.py
+	PYTHONPATH=. python plasma/child_chain/server.py
 
 .PHONY: clean
 clean: clean-build clean-pyc
