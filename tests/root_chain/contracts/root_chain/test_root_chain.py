@@ -32,7 +32,7 @@ def test_start_deposit_exit(t, u, root_chain, assert_tx_failed):
     expected_utxo_pos = blknum * 1000000000
     expected_exitable_at = t.chain.head_state.timestamp + two_weeks
     root_chain.startDepositExit(expected_utxo_pos, NULL_ADDRESS, value_1)
-    utxo_pos, exitable_at = root_chain.getNextExit(NULL_ADDRESS)
+    exitable_at, utxo_pos = root_chain.getNextExit(NULL_ADDRESS)
     assert utxo_pos == expected_utxo_pos
     assert exitable_at == expected_exitable_at
     assert root_chain.exits(utxo_pos) == ['0x82a978b3f5962a5b0957d9ee9eef472ee55b42f1', NULL_ADDRESS_HEX, 100]
@@ -56,14 +56,14 @@ def test_start_fee_exit(t, u, root_chain, assert_tx_failed):
     assert root_chain.currentFeeExit() == 1
     root_chain.startFeeExit(NULL_ADDRESS, 1)
     assert root_chain.currentFeeExit() == 2
-    utxo_pos, exitable_at = root_chain.getNextExit(NULL_ADDRESS)
+    exitable_at, utxo_pos = root_chain.getNextExit(NULL_ADDRESS)
     fee_priority = exitable_at << 128 | utxo_pos
     assert utxo_pos == expected_utxo_pos
     assert exitable_at == expected_exitable_at
 
     expected_utxo_pos = blknum * 1000000000 + 1
     root_chain.startDepositExit(expected_utxo_pos, NULL_ADDRESS, value_1)
-    utxo_pos, created_at = root_chain.getNextExit(NULL_ADDRESS)
+    created_at, utxo_pos = root_chain.getNextExit(NULL_ADDRESS)
     deposit_priority = created_at << 128 | utxo_pos
     assert fee_priority > deposit_priority
     # Fails if transaction sender isn't the authority
