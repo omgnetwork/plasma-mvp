@@ -1,3 +1,7 @@
+from plasma_core.transaction import Transaction
+from plasma_core.constants import NULL_ADDRESS
+
+
 BLKNUM_OFFSET = 1000000000
 TXINDEX_OFFSET = 10000
 
@@ -16,3 +20,11 @@ def encode_utxo_id(blknum, txindex, oindex):
 def decode_tx_id(utxo_id):
     (blknum, txindex, _) = decode_utxo_id(utxo_id)
     return encode_utxo_id(blknum, txindex, 0)
+
+
+def get_deposit_tx(owner, amount):
+    return Transaction(0, 0, 0,
+                       0, 0, 0,
+                       NULL_ADDRESS,
+                       owner, amount,
+                       NULL_ADDRESS, 0)

@@ -10,12 +10,11 @@ def block():
 
 
 def test_initial_state(block):
-    block.transaction_set = []
-    block.sig = NULL_SIGNATURE
-    block.merkle = None
+    assert block.transaction_set == []
+    assert block.sig == NULL_SIGNATURE
 
 
 def test_signature(t, block):
     block.sign(t.k0)
     assert block.sig == sign(block.hash, t.k0)
-    assert block.sender == get_signer(block.hash, sign(block.hash, t.k0))
+    assert block.signer == get_signer(block.hash, sign(block.hash, t.k0))
