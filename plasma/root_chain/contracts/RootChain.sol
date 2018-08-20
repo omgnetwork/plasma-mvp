@@ -249,6 +249,19 @@ contract RootChain {
     }
 
     /**
+     * @dev Determines the next exit to be processed.
+     * @param _token Asset type to be exited.
+     * @return A tuple of the position and time when this exit can be processed.
+     */
+    function getNextExit(address _token)
+        public
+        view
+        returns (uint256, uint256)
+    {
+        return PriorityQueue(exitsQueues[_token]).getMin();
+    }
+
+    /**
      * @dev Processes any exits that have completed the challenge period. 
      * @param _token Token type to process.
      */
@@ -256,11 +269,11 @@ contract RootChain {
         public
     {
         uint256 utxoPos;
-        uint256 exitable_at;
-        (utxoPos, exitable_at) = getNextExit(_token);
-        Exit memory currentExit = exits[utxoPos];
+        uint256 exitableAt;
+        (exitableAt, utxoPos) = getNextExit(_token);
         PriorityQueue queue = PriorityQueue(exitsQueues[_token]);
-        while (exitable_at < block.timestamp) {
+        Exit memory currentExit = exits[utxoPos];
+        while (exitableAt < block.timestamp) {
             currentExit = exits[utxoPos];
 
             // FIXME: handle ERC-20 transfer
@@ -271,7 +284,7 @@ contract RootChain {
             delete exits[utxoPos].owner;
 
             if (queue.currentSize() > 0) {
-                (utxoPos, exitable_at) = getNextExit(_token);
+                (exitableAt, utxoPos) = getNextExit(_token);
             } else {
                 return;
             }
@@ -321,22 +334,6 @@ contract RootChain {
         return (exits[_utxoPos].owner, exits[_utxoPos].token, exits[_utxoPos].amount);
     }
 
-    /**
-     * @dev Determines the next exit to be processed.
-     * @param _token Asset type to be exited.
-     * @return A tuple of the position and time when this exit can be processed.
-     */
-    function getNextExit(address _token)
-        public
-        view
-        returns (uint256, uint256)
-    {
-        uint256 priority = PriorityQueue(exitsQueues[_token]).getMin();
-        uint256 utxoPos = uint256(uint128(priority));
-        uint256 exitable_at = priority >> 128;
-        return (utxoPos, exitable_at);
-    }
-
 
     /*
      * Private functions
@@ -362,16 +359,14 @@ contract RootChain {
         // Check that we're exiting a known token.
         require(exitsQueues[_token] != address(0));
 
-        // Calculate priority.
-        uint256 exitable_at = Math.max(_created_at + 2 weeks, block.timestamp + 1 weeks);
-        uint256 priority = exitable_at << 128 | _utxoPos;
-        
         // Check exit is valid and doesn't already exist.
         require(_amount > 0);
         require(exits[_utxoPos].amount == 0);
 
+        // Calculate priority.
+        uint256 exitableAt = Math.max(_created_at + 2 weeks, block.timestamp + 1 weeks);
         PriorityQueue queue = PriorityQueue(exitsQueues[_token]);
-        queue.insert(priority);
+        queue.insert(exitableAt, _utxoPos);
 
         exits[_utxoPos] = Exit({
             owner: _exitor,
