@@ -128,6 +128,8 @@ $ make lint
 
 The fastest way to start playing with our Plasma MVP is by starting up `ganache-cli`, deploying everything locally, and running our CLI. Full documentation for the CLI is available [here](#cli-documentation).
 
+#### [Ganache 1.2.1+](https://github.com/trufflesuite/ganache/releases)
+
 ```bash
 $ ganache-cli -m=plasma_mvp # Start ganache-cli
 $ make root-chain           # Deploy the root chain contract
