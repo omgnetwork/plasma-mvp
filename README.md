@@ -94,6 +94,8 @@ Windows:
 choco install python
 ```
 
+#### [Ganache CLI 6.1.8+](https://github.com/trufflesuite/ganache-cli)
+
 ### Installation
 
 Note: we optionally recommend using something like [`virtualenv`](https://pypi.python.org/pypi/virtualenv) in order to create an isolated Python environment:
@@ -127,8 +129,6 @@ $ make lint
 ### Starting Plasma
 
 The fastest way to start playing with our Plasma MVP is by starting up `ganache-cli`, deploying everything locally, and running our CLI. Full documentation for the CLI is available [here](#cli-documentation).
-
-#### [Ganache 1.2.1+](https://github.com/trufflesuite/ganache/releases)
 
 ```bash
 $ ganache-cli -m=plasma_mvp # Start ganache-cli
