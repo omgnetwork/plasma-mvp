@@ -32,7 +32,7 @@ class Client(object):
         if key1:
             transaction.sign1(key1)
         if key2:
-            transaction.sign1(key2)
+            transaction.sign2(key2)
         return transaction
 
     def deposit(self, amount, owner):
