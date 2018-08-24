@@ -50,7 +50,6 @@ def deposit(client, amount, address):
 @click.argument('amount1', type=int)
 @click.argument('newowner2')
 @click.argument('amount2', type=int)
-@click.argument('fee', default=0)
 @click.argument('key1')
 @click.argument('key2', required=False)
 @click.pass_obj
@@ -60,7 +59,6 @@ def sendtx(client,
            cur12,
            amount1, newowner1,
            amount2, newowner2,
-           fee,
            key1, key2):
     if cur12 == "0x0":
         cur12 = NULL_ADDRESS
@@ -74,8 +72,7 @@ def sendtx(client,
                      blknum2, txindex2, oindex2,
                      utils.normalize_address(cur12),
                      utils.normalize_address(newowner1), amount1,
-                     utils.normalize_address(newowner2), amount2,
-                     fee)
+                     utils.normalize_address(newowner2), amount2)
 
     # Sign it
     if key1:

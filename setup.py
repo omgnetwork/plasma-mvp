@@ -18,6 +18,7 @@ setup(
     install_requires=[
         'ethereum==2.3.0',
         'web3==4.5.0',
+        'werkzeug==0.14.1',
         'json-rpc==1.10.8',
         'plyvel==1.0.4',
         'py-solc',
