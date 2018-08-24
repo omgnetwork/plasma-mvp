@@ -85,8 +85,8 @@ class Chain(object):
     def get_block(self, blknum):
         return self.blocks[blknum]
 
-    def get_transaction(self, transaction_id):
-        (blknum, txindex, _) = decode_utxo_id(transaction_id)
+    def get_transaction(self, utxo_id):
+        (blknum, txindex, _) = decode_utxo_id(utxo_id)
         return self.blocks[blknum].transaction_set[txindex]
 
     def mark_utxo_spent(self, utxo_id):
