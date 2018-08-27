@@ -179,7 +179,7 @@ Creates a transaction and submits it to the child chain.
 #### Usage
 
 ```
-sendtx <blknum1> <txindex1> <oindex1> <blknum2> <txindex2> <oindex2> <newowner1> <amount1> <newowner2> <amount2> <fee> <key1> [<key2>]
+sendtx <blknum1> <txindex1> <oindex1> <blknum2> <txindex2> <oindex2> <cur12> <newowner1> <amount1> <newowner2> <amount2> <key1> [<key2>]
 ```
 
 #### Example
@@ -233,8 +233,15 @@ Withdraws from a deposit.
 #### Usage
 
 ```
+withdrawdeposit <owner> <blknum> <amount>
+```
+
+#### Example
+
+```
 withdrawdeposit 0xfd02EcEE62797e75D86BCff1642EB0844afB28c7 1 100
 ```
+
 
 ## CLI Example
 
