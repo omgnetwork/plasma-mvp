@@ -112,7 +112,7 @@ $ make
 
 ### Testing
 
-Before you run tests, make sure you have an Ethereum client running and an JSON RPC API exposed on port `8545`. We recommend using `ganache-cli` to accomplish this when running tests.
+Before you run tests, make sure you have an Ethereum client running and an JSON RPC API exposed on port `8545`. We recommend using `ganache-cli` to accomplish this when running tests. Start it with the command-line argument `-m="plasma_mvp"`.
 
 Project tests can be found in the `tests/` folder. Run tests with:
 
