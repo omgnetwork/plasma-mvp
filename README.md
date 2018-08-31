@@ -32,26 +32,6 @@ Plasma MVP is split into four main parts: `root_chain`, `child_chain`, `client`,
 
 This project has a few pre-installation dependencies.
 
-#### [LevelDB](https://github.com/google/leveldb)
-
-Mac:
-```sh
-brew install leveldb
-```
-
-Linux:
-
-LevelDB should be installed along with `plyvel` once you make the project later on.
-
-Windows:
-
-First, install [vcpkg](https://github.com/Microsoft/vcpkg). Then,
-
-```sh
-vcpkg install leveldb
-```
-
-
 #### [Solidity](https://solidity.readthedocs.io/en/latest/installing-solidity.html)
 
 Mac:
