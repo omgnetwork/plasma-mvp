@@ -58,7 +58,7 @@ contract RootChain {
     uint256 public currentDepositBlock;
     uint256 public currentFeeExit;
 
-    mapping (uint256 => ChildBlock) public childChain;
+    mapping (uint256 => PlasmaBlock) public plasmaBlocks;
     mapping (uint256 => Exit) public exits;
     mapping (address => address) public exitsQueues;
 
@@ -68,7 +68,7 @@ contract RootChain {
         uint256 amount;
     }
 
-    struct ChildBlock {
+    struct PlasmaBlock {
         bytes32 root;
         uint256 timestamp;
     }
@@ -113,7 +113,7 @@ contract RootChain {
         public
         onlyOperator
     {   
-        childChain[currentChildBlock] = ChildBlock({
+        plasmaBlocks[currentChildBlock] = PlasmaBlock({
             root: _root,
             timestamp: block.timestamp
         });
@@ -137,7 +137,7 @@ contract RootChain {
 
         bytes32 root = keccak256(msg.sender, address(0), msg.value);
         uint256 depositBlock = getDepositBlock();
-        childChain[depositBlock] = ChildBlock({
+        plasmaBlocks[depositBlock] = PlasmaBlock({
             root: root,
             timestamp: block.timestamp
         });
@@ -161,11 +161,11 @@ contract RootChain {
         require(blknum % CHILD_BLOCK_INTERVAL != 0);
 
         // Validate the given owner and amount.
-        bytes32 root = childChain[blknum].root;
+        bytes32 root = plasmaBlocks[blknum].root;
         bytes32 depositHash = keccak256(msg.sender, _token, _amount);
         require(root == depositHash);
 
-        addExitToQueue(_depositPos, msg.sender, _token, _amount, childChain[blknum].timestamp);
+        addExitToQueue(_depositPos, msg.sender, _token, _amount, plasmaBlocks[blknum].timestamp);
     }
 
     /**
@@ -205,12 +205,12 @@ contract RootChain {
         require(msg.sender == exitingTx.exitor);
 
         // Check the transaction was included in the chain and is correctly signed.
-        bytes32 root = childChain[blknum].root; 
+        bytes32 root = plasmaBlocks[blknum].root; 
         bytes32 merkleHash = keccak256(keccak256(_txBytes), ByteUtils.slice(_sigs, 0, 130));
         require(Validate.checkSigs(keccak256(_txBytes), root, exitingTx.inputCount, _sigs));
         require(merkleHash.checkMembership(txindex, root, _proof));
 
-        addExitToQueue(_utxoPos, exitingTx.exitor, exitingTx.token, exitingTx.amount, childChain[blknum].timestamp);
+        addExitToQueue(_utxoPos, exitingTx.exitor, exitingTx.token, exitingTx.amount, plasmaBlocks[blknum].timestamp);
     }
 
     /**
@@ -234,7 +234,7 @@ contract RootChain {
     {
         uint256 eUtxoPos = _txBytes.getUtxoPos(_eUtxoIndex);
         uint256 txindex = (_cUtxoPos % 1000000000) / 10000;
-        bytes32 root = childChain[_cUtxoPos / 1000000000].root;
+        bytes32 root = plasmaBlocks[_cUtxoPos / 1000000000].root;
         var txHash = keccak256(_txBytes);
         var confirmationHash = keccak256(txHash, root);
         var merkleHash = keccak256(txHash, _sigs);
@@ -301,12 +301,12 @@ contract RootChain {
      * @param _blockNumber Number of the block to return.
      * @return Child chain block at the specified block number.
      */
-    function getChildChain(uint256 _blockNumber)
+    function getPlasmaBlock(uint256 _blockNumber)
         public
         view
         returns (bytes32, uint256)
     {
-        return (childChain[_blockNumber].root, childChain[_blockNumber].timestamp);
+        return (plasmaBlocks[_blockNumber].root, plasmaBlocks[_blockNumber].timestamp);
     }
 
     /**
