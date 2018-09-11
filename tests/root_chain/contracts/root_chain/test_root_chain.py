@@ -17,8 +17,8 @@ def test_deposit(t, u, root_chain):
     owner, value_1 = t.a0, 100
     blknum = root_chain.getDepositBlock()
     root_chain.deposit(value=value_1)
-    assert root_chain.getChildChain(blknum)[0] == u.sha3(owner + b'\x00' * 31 + NULL_ADDRESS + u.int_to_bytes(value_1))
-    assert root_chain.getChildChain(blknum)[1] == t.chain.head_state.timestamp
+    assert root_chain.getPlasmaBlock(blknum)[0] == u.sha3(owner + b'\x00' * 31 + NULL_ADDRESS + u.int_to_bytes(value_1))
+    assert root_chain.getPlasmaBlock(blknum)[1] == t.chain.head_state.timestamp
     assert root_chain.getDepositBlock() == blknum + 1
 
 
@@ -82,7 +82,7 @@ def test_start_exit(t, root_chain, assert_tx_failed):
     root_chain.deposit(value=value_1, sender=key)
     merkle = FixedMerkle(16, [deposit_tx_hash], True)
     proof = merkle.create_membership_proof(deposit_tx_hash)
-    confirmSig1 = confirm_tx(tx1, root_chain.getChildChain(dep_blknum)[0], key)
+    confirmSig1 = confirm_tx(tx1, root_chain.getPlasmaBlock(dep_blknum)[0], key)
     priority1 = dep_blknum * 1000000000 + 10000 * 0 + 1
     snapshot = t.chain.snapshot()
     sigs = tx1.sig1 + tx1.sig2 + confirmSig1
@@ -107,7 +107,7 @@ def test_start_exit(t, root_chain, assert_tx_failed):
     child_blknum = root_chain.currentChildBlock()
     assert child_blknum == 1000
     root_chain.submitBlock(merkle.root)
-    confirmSig1 = confirm_tx(tx2, root_chain.getChildChain(child_blknum)[0], key)
+    confirmSig1 = confirm_tx(tx2, root_chain.getPlasmaBlock(child_blknum)[0], key)
     priority2 = child_blknum * 1000000000 + 10000 * 0 + 0
     sigs = tx2.sig1 + tx2.sig2 + confirmSig1
     snapshot = t.chain.snapshot()
@@ -130,8 +130,8 @@ def test_start_exit(t, root_chain, assert_tx_failed):
     child2_blknum = root_chain.currentChildBlock()
     assert child2_blknum == 2000
     root_chain.submitBlock(merkle.root)
-    confirmSig1 = confirm_tx(tx3, root_chain.getChildChain(child2_blknum)[0], key)
-    confirmSig2 = confirm_tx(tx3, root_chain.getChildChain(child2_blknum)[0], key)
+    confirmSig1 = confirm_tx(tx3, root_chain.getPlasmaBlock(child2_blknum)[0], key)
+    confirmSig2 = confirm_tx(tx3, root_chain.getPlasmaBlock(child2_blknum)[0], key)
     priority3 = child2_blknum * 1000000000 + 10000 * 0 + 0
     sigs = tx3.sig1 + tx3.sig2 + confirmSig1 + confirmSig2
     # Double input exit
@@ -152,7 +152,7 @@ def test_challenge_exit(t, u, root_chain, assert_tx_failed):
     root_chain.deposit(value=value_1, sender=key)
     merkle = FixedMerkle(16, [deposit_tx_hash], True)
     proof = merkle.create_membership_proof(deposit_tx_hash)
-    confirmSig1 = confirm_tx(tx1, root_chain.getChildChain(utxo_pos1)[0], key)
+    confirmSig1 = confirm_tx(tx1, root_chain.getPlasmaBlock(utxo_pos1)[0], key)
     sigs = tx1.sig1 + tx1.sig2 + confirmSig1
     root_chain.startDepositExit(utxo_pos1, NULL_ADDRESS, tx1.amount1, sender=key)
     tx3 = Transaction(utxo_pos2, 0, 0, 0, 0, 0,
@@ -164,7 +164,7 @@ def test_challenge_exit(t, u, root_chain, assert_tx_failed):
     proof = merkle.create_membership_proof(tx3.merkle_hash)
     child_blknum = root_chain.currentChildBlock()
     root_chain.submitBlock(merkle.root)
-    confirmSig = confirm_tx(tx3, root_chain.getChildChain(child_blknum)[0], key)
+    confirmSig = confirm_tx(tx3, root_chain.getPlasmaBlock(child_blknum)[0], key)
     sigs = tx3.sig1 + tx3.sig2
     utxo_pos3 = child_blknum * 1000000000 + 10000 * 0 + 0
     tx4 = Transaction(utxo_pos1, 0, 0, 0, 0, 0,
@@ -176,7 +176,7 @@ def test_challenge_exit(t, u, root_chain, assert_tx_failed):
     proof = merkle.create_membership_proof(tx4.merkle_hash)
     child_blknum = root_chain.currentChildBlock()
     root_chain.submitBlock(merkle.root)
-    confirmSig = confirm_tx(tx4, root_chain.getChildChain(child_blknum)[0], key)
+    confirmSig = confirm_tx(tx4, root_chain.getPlasmaBlock(child_blknum)[0], key)
     sigs = tx4.sig1 + tx4.sig2
     utxo_pos4 = child_blknum * 1000000000 + 10000 * 0 + 0
     oindex1 = 0

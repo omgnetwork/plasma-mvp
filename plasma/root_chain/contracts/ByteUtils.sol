@@ -3,15 +3,22 @@ pragma solidity ^0.4.0;
 
 /**
  * @title Bytes operations
- * @dev Based on https://github.com/GNSPS/solidity-bytes-utils/blob/master/contracts/BytesLib.sol
+ * @dev Based on https://github.com/GNSPS/solidity-bytes-utils/blob/master/contracts/BytesLib.sol.
  */
 library ByteUtils {
-    function slice(bytes _bytes, uint _start, uint _length)
-        internal
-        pure
-        returns (bytes)
-    {
-        require(_bytes.length >= (_start + _length));
+    /*
+     * Internal functions
+     */
+
+    /**
+     * @dev Slices off bytes from a byte string.
+     * @param _bytes Byte string to slice.
+     * @param _start Starting index of the slice.
+     * @param _length Length of the slice.
+     * @return The slice of the byte string.
+     */
+    function slice(bytes _bytes, uint _start, uint _length) internal pure returns (bytes) {
+        require(_bytes.length >= (_start + _length), "Slice length cannot be longer than _bytes length");
 
         bytes memory tempBytes;
 

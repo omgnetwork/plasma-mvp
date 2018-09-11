@@ -16,7 +16,7 @@ def test_deposit(test_lang):
     (deposit_blknum, _, _) = decode_utxo_id(deposit_id)
     deposit_block = test_lang.child_chain.get_block(deposit_blknum)
     assert deposit_block.transaction_set[0].hash == tx.hash
-    assert test_lang.root_chain.call().getChildChain(deposit_blknum)[0] == deposit_hash
+    assert test_lang.root_chain.call().getPlasmaBlock(deposit_blknum)[0] == deposit_hash
 
 
 def test_transfer(test_lang):
@@ -45,7 +45,7 @@ def test_submit_block(test_lang):
     test_lang.transfer(deposit_id, owner_2, amount, owner_1)
 
     blknum = 1000
-    assert test_lang.root_chain.call().getChildChain(blknum)[0] == test_lang.child_chain.get_block(blknum).root
+    assert test_lang.root_chain.call().getPlasmaBlock(blknum)[0] == test_lang.child_chain.get_block(blknum).root
 
 
 def test_withdraw_transfer(test_lang):
