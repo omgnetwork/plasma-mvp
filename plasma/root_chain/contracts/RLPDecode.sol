@@ -37,7 +37,7 @@ library RLPDecode {
     * @param item RLP encoded list in bytes
     */
     function toList(RLPItem memory item) internal pure returns (RLPItem[] memory result) {
-        require(isList(item));
+        require(isList(item), "Item must be a list.");
 
         uint items = numItems(item);
         result = new RLPItem[](items);
@@ -140,7 +140,7 @@ library RLPDecode {
     /** RLPItem conversions into data types **/
 
     function toBoolean(RLPItem memory item) internal pure returns (bool) {
-        require(item.len == 1);
+        require(item.len == 1, "Item must be a boolean.");
         uint result;
         uint memPtr = item.memPtr;
         assembly {
@@ -152,7 +152,7 @@ library RLPDecode {
 
     function toAddress(RLPItem memory item) internal pure returns (address) {
         // 1 byte for the length prefix according to RLP spec
-        require(item.len == 21);
+        require(item.len == 21, "Item must be 21 characters long.");
         
         uint memPtr = item.memPtr + 1; // skip the length prefix
         uint addr;

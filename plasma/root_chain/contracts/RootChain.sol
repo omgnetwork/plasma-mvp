@@ -79,7 +79,7 @@ contract RootChain {
      */
 
     modifier onlyOperator() {
-        require(msg.sender == operator);
+        require(msg.sender == operator, "Sender must be operator.");
         _;
     }
 
@@ -155,12 +155,12 @@ contract RootChain {
         uint256 blknum = _depositPos / 1000000000;
 
         // Check that the given UTXO is a deposit.
-        require(blknum % CHILD_BLOCK_INTERVAL != 0);
+        require(blknum % CHILD_BLOCK_INTERVAL != 0, "Referenced block must be a deposit block.");
 
         // Validate the given owner and amount.
         bytes32 root = plasmaBlocks[blknum].root;
         bytes32 depositHash = keccak256(msg.sender, _token, _amount);
-        require(root == depositHash);
+        require(root == depositHash, "Root hash must match deposit hash.");
 
         addExitToQueue(_depositPos, msg.sender, _token, _amount, plasmaBlocks[blknum].timestamp);
     }
@@ -199,13 +199,13 @@ contract RootChain {
 
         // Check the sender owns this UTXO.
         var exitingTx = _txBytes.createExitingTx(oindex);
-        require(msg.sender == exitingTx.exitor);
+        require(msg.sender == exitingTx.exitor, "Sender must be exitor.");
 
         // Check the transaction was included in the chain and is correctly signed.
         bytes32 root = plasmaBlocks[blknum].root; 
         bytes32 merkleHash = keccak256(keccak256(_txBytes), ByteUtils.slice(_sigs, 0, 130));
-        require(Validate.checkSigs(keccak256(_txBytes), root, exitingTx.inputCount, _sigs));
-        require(merkleHash.checkMembership(txindex, root, _proof));
+        require(Validate.checkSigs(keccak256(_txBytes), root, exitingTx.inputCount, _sigs), "Signatures must match.");
+        require(merkleHash.checkMembership(txindex, root, _proof), "Transaction Merkle proof is invalid.");
 
         addExitToQueue(_utxoPos, exitingTx.exitor, exitingTx.token, exitingTx.amount, plasmaBlocks[blknum].timestamp);
     }
@@ -238,8 +238,8 @@ contract RootChain {
         address owner = exits[eUtxoPos].owner;
 
         // Validate the spending transaction.
-        require(owner == ECRecovery.recover(confirmationHash, _confirmationSig));
-        require(merkleHash.checkMembership(txindex, root, _proof));
+        require(owner == ECRecovery.recover(confirmationHash, _confirmationSig), "Confirmation signature must be signed by owner.");
+        require(merkleHash.checkMembership(txindex, root, _proof), "Transaction Merkle proof is invalid.");
 
         // Delete the owner but keep the amount to prevent another exit.
         delete exits[eUtxoPos].owner;
@@ -274,7 +274,7 @@ contract RootChain {
             currentExit = exits[utxoPos];
 
             // FIXME: handle ERC-20 transfer
-            require(address(0) == _token);
+            require(address(0) == _token, "Token must be ETH.");
 
             currentExit.owner.transfer(currentExit.amount);
             queue.delMin();
@@ -354,11 +354,11 @@ contract RootChain {
         private
     {
         // Check that we're exiting a known token.
-        require(exitsQueues[_token] != address(0));
+        require(exitsQueues[_token] != address(0), "Must exit a known token.");
 
         // Check exit is valid and doesn't already exist.
-        require(_amount > 0);
-        require(exits[_utxoPos].amount == 0);
+        require(_amount > 0, "Exit value cannot be zero.");
+        require(exits[_utxoPos].amount == 0, "Exit cannot already exist.");
 
         // Calculate priority.
         uint256 exitableAt = Math.max(_created_at + 2 weeks, block.timestamp + 1 weeks);
