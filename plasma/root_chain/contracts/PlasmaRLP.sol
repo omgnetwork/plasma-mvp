@@ -1,6 +1,6 @@
 pragma solidity ^0.4.0;
 
-import "./RLP.sol";
+import "./RLPDecode.sol";
 
 
 library PlasmaRLP {
@@ -19,12 +19,12 @@ library PlasmaRLP {
         constant
         returns (uint256)
     {
-        var txList = RLP.toList(RLP.toRlpItem(challengingTxBytes));
+        var txList = RLPDecode.toList(RLPDecode.toRlpItem(challengingTxBytes));
         uint256 oIndexShift = oIndex * 3;
         return
-            RLP.toUint(txList[0 + oIndexShift]) +
-            RLP.toUint(txList[1 + oIndexShift]) +
-            RLP.toUint(txList[2 + oIndexShift]);
+            RLPDecode.toUint(txList[0 + oIndexShift]) +
+            RLPDecode.toUint(txList[1 + oIndexShift]) +
+            RLPDecode.toUint(txList[2 + oIndexShift]);
     }
 
     function createExitingTx(bytes memory exitingTxBytes, uint256 oindex)
@@ -32,12 +32,12 @@ library PlasmaRLP {
         constant
         returns (exitingTx)
     {
-        var txList = RLP.toList(RLP.toRlpItem(exitingTxBytes));
+        var txList = RLPDecode.toList(RLPDecode.toRlpItem(exitingTxBytes));
         return exitingTx({
-            exitor: RLP.toAddress(txList[7 + 2 * oindex]),
-            token: RLP.toAddress(txList[6]),
-            amount: RLP.toUint(txList[8 + 2 * oindex]),
-            inputCount: RLP.toUint(txList[0]) * RLP.toUint(txList[3])
+            exitor: RLPDecode.toAddress(txList[7 + 2 * oindex]),
+            token: RLPDecode.toAddress(txList[6]),
+            amount: RLPDecode.toUint(txList[8 + 2 * oindex]),
+            inputCount: RLPDecode.toUint(txList[0]) * RLPDecode.toUint(txList[3])
         });
     }
 }
