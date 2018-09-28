@@ -23,7 +23,7 @@ library ECRecovery {
 
         // Check the signature length.
         if (_sig.length != 65) {
-            return address(0);
+            revert("Invalid signature length.");
         }
 
         // Divide the signature in v, r, and s variables.
@@ -40,7 +40,7 @@ library ECRecovery {
 
         // If the version is correct return the signer address.
         if (v != 27 && v != 28) {
-            return address(0);
+            revert("Invalid signature version.");
         } else {
             return ecrecover(_hash, v, r, s);
         }
