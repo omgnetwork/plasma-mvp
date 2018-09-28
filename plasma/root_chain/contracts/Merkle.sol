@@ -25,7 +25,7 @@ library Merkle {
         bytes _proof
     ) internal pure returns (bool) {
         // Check that the proof length is valid.
-        require(_proof.length % 32 == 0);
+        require(_proof.length % 32 == 0, "Invalid proof length.");
 
         // Compute the merkle root.
         bytes32 proofElement;

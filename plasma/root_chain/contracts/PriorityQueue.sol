@@ -24,7 +24,7 @@ contract PriorityQueue {
      */
 
     modifier onlyOwner() {
-        require(msg.sender == owner);
+        require(msg.sender == owner, "Sender must be owner.");
         _;
     }
 
