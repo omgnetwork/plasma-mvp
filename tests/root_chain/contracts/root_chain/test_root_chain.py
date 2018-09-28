@@ -180,11 +180,11 @@ def test_challenge_exit(t, u, root_chain, assert_tx_failed):
     oindex1 = 0
     assert root_chain.exits(utxo_pos1) == ['0x' + owner.hex(), NULL_ADDRESS_HEX, 100]
     # Fails if transaction after exit doesn't reference the utxo being exited
-    assert_tx_failed(lambda: root_chain.challengeExit(utxo_pos3, utxo_pos1, tx_bytes3, proof, sigs, confirmSig))
+    assert_tx_failed(lambda: root_chain.challengeExit(utxo_pos3, oindex1, tx_bytes3, proof, sigs, confirmSig))
     # Fails if transaction proof is incorrect
-    assert_tx_failed(lambda: root_chain.challengeExit(utxo_pos4, utxo_pos1, tx_bytes4, proof[::-1], sigs, confirmSig))
+    assert_tx_failed(lambda: root_chain.challengeExit(utxo_pos4, oindex1, tx_bytes4, proof[::-1], sigs, confirmSig))
     # Fails if transaction confirmation is incorrect
-    assert_tx_failed(lambda: root_chain.challengeExit(utxo_pos4, utxo_pos1, tx_bytes4, proof, sigs, confirmSig[::-1]))
+    assert_tx_failed(lambda: root_chain.challengeExit(utxo_pos4, oindex1, tx_bytes4, proof, sigs, confirmSig[::-1]))
     root_chain.challengeExit(utxo_pos4, oindex1, tx_bytes4, proof, sigs, confirmSig)
     assert root_chain.exits(utxo_pos1) == [NULL_ADDRESS_HEX, NULL_ADDRESS_HEX, value_1]
 
