@@ -4,6 +4,7 @@ from web3 import HTTPProvider
 from plasma_core.block import Block
 from plasma_core.transaction import Transaction, UnsignedTransaction
 from plasma_core.constants import NULL_ADDRESS, CONTRACT_ADDRESS
+from plasma_core.utils.transactions import encode_utxo_id
 from plasma.root_chain.deployer import Deployer
 from .child_chain_service import ChildChainService
 
@@ -45,7 +46,7 @@ class Client(object):
         self.child_chain.submit_block(block)
 
     def withdraw(self, blknum, txindex, oindex, tx, proof, sigs):
-        utxo_pos = blknum * 1000000000 + txindex * 10000 + oindex * 1
+        utxo_pos = encode_utxo_id(blknum, txindex, oindex)
         encoded_transaction = rlp.encode(tx, UnsignedTransaction)
         self.root_chain.startExit(utxo_pos, encoded_transaction, proof, sigs, transact={'from': '0x' + tx.newowner1.hex()})
 
