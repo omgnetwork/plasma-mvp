@@ -3,6 +3,7 @@ from ethereum import utils
 from plasma_core.constants import NULL_ADDRESS
 from plasma_core.transaction import Transaction
 from plasma_core.utils.utils import confirm_tx
+from plasma_core.utils.transactions import encode_utxo_id
 from plasma.client.client import Client
 from plasma.client.exceptions import ChildChainServiceError
 
@@ -136,7 +137,7 @@ def withdraw(client,
 @click.argument('amount', required=True, type=int)
 @click.pass_obj
 def withdrawdeposit(client, owner, blknum, amount):
-    deposit_pos = blknum * 1000000000
+    deposit_pos = encode_utxo_id(blknum, 0, 0)
     client.withdraw_deposit(owner, deposit_pos, amount)
     print("Submitted withdrawal")
 

@@ -128,14 +128,11 @@ contract RootChain {
     /**
      * @dev Allows anyone to deposit funds into the Plasma chain.
      */
-    function deposit()
-        public
-        payable
-    {
+    function deposit() public payable {
         // Only allow up to CHILD_BLOCK_INTERVAL deposits per child block.
-        require(currentDepositBlock < CHILD_BLOCK_INTERVAL);
+        require(currentDepositBlock < CHILD_BLOCK_INTERVAL, "Deposit limit reached.");
 
-        bytes32 root = keccak256(msg.sender, address(0), msg.value);
+        bytes32 root = keccak256(abi.encodePacked(msg.sender, address(0), msg.value));
         uint256 depositBlock = getDepositBlock();
         plasmaBlocks[depositBlock] = PlasmaBlock({
             root: root,
