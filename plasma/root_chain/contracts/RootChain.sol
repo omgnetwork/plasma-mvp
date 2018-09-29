@@ -276,7 +276,10 @@ contract RootChain {
             // FIXME: handle ERC-20 transfer
             require(address(0) == _token, "Token must be ETH.");
 
-            currentExit.owner.transfer(currentExit.amount);
+            if (address(0) != currentExit.owner) {
+                currentExit.owner.transfer(currentExit.amount);
+            }
+
             queue.delMin();
             delete exits[utxoPos].owner;
 
