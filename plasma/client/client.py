@@ -49,14 +49,9 @@ class Client(object):
     def withdraw(self, blknum, txindex, oindex, tx, proof, sigs):
         utxo_pos = encode_utxo_id(blknum, txindex, oindex)
         encoded_transaction = rlp.encode(tx, UnsignedTransaction)
-
-        _from = ''
-        if oindex == 0:
-            _from = address.to_checksum_address('0x' + tx.newowner1.hex())
-        else:
-            _from = address.to_checksum_address('0x' + tx.newowner2.hex())
-
-        self.root_chain.startExit(utxo_pos, encoded_transaction, proof, sigs, transact={'from': _from})
+        owner = tx.newowner1 if oindex == 0 else tx.newowner2
+        owner_addr = address.to_checksum_address('0x' + owner.hex())
+        self.root_chain.startExit(utxo_pos, encoded_transaction, proof, sigs, transact={'from': owner_addr})
 
     def withdraw_deposit(self, owner, deposit_pos, amount):
         self.root_chain.startDepositExit(deposit_pos, NULL_ADDRESS, amount, transact={'from': owner})
