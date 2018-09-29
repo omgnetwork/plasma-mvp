@@ -163,12 +163,14 @@ def confirm_sig(client, blknum, key):
 
 @cli.command()
 @click.argument('blknum', required=True, type=int)
+@click.argument('txindex', required=True, type=int)
+@click.argument('oindex', required=True, type=int)
 @click.argument('confirm_sig_hex', required=True)
 @click.argument('account', required=True)
 @click.pass_obj
-def challenge_exit(client, blknum, confirm_sig_hex, account):
+def challenge_exit(client, blknum, txindex, oindex, confirm_sig_hex, account):
     confirmSig = utils.decode_hex(confirm_sig_hex)
-    client.challenge_exit(blknum, confirmSig, account)
+    client.challenge_exit(blknum, txindex, oindex, confirmSig, account)
     print("Submitted challenge exit")
 
 

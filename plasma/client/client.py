@@ -7,7 +7,6 @@ from plasma_core.constants import NULL_ADDRESS, CONTRACT_ADDRESS
 from plasma_core.utils.transactions import encode_utxo_id
 from plasma.root_chain.deployer import Deployer
 from .child_chain_service import ChildChainService
-from plasma_core.utils.merkle.fixed_merkle import FixedMerkle
 from eth_utils import address
 
 
@@ -80,16 +79,12 @@ class Client(object):
     def finalize_exits(self, account):
         self.root_chain.finalizeExits(NULL_ADDRESS, transact={'from': account})
 
-    def challenge_exit(self, blknum, confirmSig, account):
-        oindex = 0
-        utxo_pos = encode_utxo_id(blknum, 0, oindex)
+    def challenge_exit(self, blknum, txindex, oindex, confirm_sig, account):
+        block = self.get_block(blknum)
+        tx = block.transaction_set[txindex]
 
-        tx = self.get_transaction(blknum, 0)
-        tx_bytes = rlp.encode(tx, UnsignedTransaction)
-
-        merkle = FixedMerkle(16, [tx.merkle_hash], True)
-        proof = merkle.create_membership_proof(tx.merkle_hash)
-
+        utxo_pos = encode_utxo_id(blknum, txindex, oindex)
+        proof = block.merkle.create_membership_proof(tx.merkle_hash)
         sigs = tx.sig1 + tx.sig2
 
-        return self.root_chain.challengeExit(utxo_pos, oindex, tx_bytes, proof, sigs, confirmSig, transact={'from': account})
+        return self.root_chain.challengeExit(utxo_pos, oindex, tx.encoded, proof, sigs, confirm_sig, transact={'from': account})
