@@ -22,8 +22,8 @@ library PlasmaRLP {
         var txList = RLPDecode.toList(RLPDecode.toRlpItem(challengingTxBytes));
         uint256 oIndexShift = oIndex * 3;
         return
-            RLPDecode.toUint(txList[0 + oIndexShift]) +
-            RLPDecode.toUint(txList[1 + oIndexShift]) +
+            RLPDecode.toUint(txList[0 + oIndexShift]) * 1000000000 +
+            RLPDecode.toUint(txList[1 + oIndexShift]) * 10000 +
             RLPDecode.toUint(txList[2 + oIndexShift]);
     }
 
