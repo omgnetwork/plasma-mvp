@@ -7,6 +7,7 @@ from plasma_core.constants import NULL_ADDRESS, CONTRACT_ADDRESS
 from plasma_core.utils.transactions import encode_utxo_id
 from plasma.root_chain.deployer import Deployer
 from .child_chain_service import ChildChainService
+from eth_utils import address
 
 
 class Client(object):
@@ -48,7 +49,9 @@ class Client(object):
     def withdraw(self, blknum, txindex, oindex, tx, proof, sigs):
         utxo_pos = encode_utxo_id(blknum, txindex, oindex)
         encoded_transaction = rlp.encode(tx, UnsignedTransaction)
-        self.root_chain.startExit(utxo_pos, encoded_transaction, proof, sigs, transact={'from': '0x' + tx.newowner1.hex()})
+        owner = tx.newowner1 if oindex == 0 else tx.newowner2
+        owner_addr = address.to_checksum_address('0x' + owner.hex())
+        self.root_chain.startExit(utxo_pos, encoded_transaction, proof, sigs, transact={'from': owner_addr})
 
     def withdraw_deposit(self, owner, deposit_pos, amount):
         self.root_chain.startDepositExit(deposit_pos, NULL_ADDRESS, amount, transact={'from': owner})
