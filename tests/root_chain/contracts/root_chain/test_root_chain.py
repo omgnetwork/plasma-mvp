@@ -3,7 +3,7 @@ import rlp
 from plasma_core.transaction import Transaction, UnsignedTransaction
 from plasma_core.utils.merkle.fixed_merkle import FixedMerkle
 from plasma_core.utils.utils import confirm_tx, get_deposit_hash
-from plasma_core.utils.transactions import encode_utxo_id
+from plasma_core.utils.transactions import encode_utxo_id, decode_utxo_id
 from plasma_core.constants import NULL_ADDRESS, NULL_ADDRESS_HEX
 
 
@@ -165,7 +165,9 @@ def test_challenge_exit(t, u, root_chain, assert_tx_failed):
     confirmSig = confirm_tx(tx3, root_chain.getPlasmaBlock(child_blknum)[0], key)
     sigs = tx3.sig1 + tx3.sig2
     utxo_pos3 = encode_utxo_id(child_blknum, 0, 0)
-    tx4 = Transaction(utxo_pos1, 0, 0, 0, 0, 0,
+
+    utxo1_blknum, _, _ = decode_utxo_id(utxo_pos1)
+    tx4 = Transaction(utxo1_blknum, 0, 0, 0, 0, 0,
                       NULL_ADDRESS,
                       owner, value_1, NULL_ADDRESS, 0)
     tx4.sign1(key)
