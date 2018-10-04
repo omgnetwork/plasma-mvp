@@ -245,6 +245,7 @@ contract RootChain {
 
         // Delete the owner but keep the amount to prevent another exit.
         delete exits[eUtxoPos].owner;
+        msg.sender.transfer(EXIT_BOND);
     }
 
     /**
@@ -273,7 +274,7 @@ contract RootChain {
             require(address(0) == _token, "Token must be ETH.");
 
             if (currentExit.owner != address(0)) {
-                currentExit.owner.transfer(currentExit.amount);
+                currentExit.owner.transfer(currentExit.amount + EXIT_BOND);
             }
 
             queue.delMin();
