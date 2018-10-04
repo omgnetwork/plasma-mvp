@@ -50,6 +50,7 @@ contract RootChain {
      * Storage
      */
 
+    uint256 public constant EXIT_BOND = 1234567890;
     uint256 public constant CHILD_BLOCK_INTERVAL = 1000;
 
     address public operator;
@@ -83,14 +84,17 @@ contract RootChain {
         _;
     }
 
+    modifier onlyWithValue(uint256 _value) {
+        require(msg.value == _value, "Invalid attached value.");
+        _;
+    }
+
 
     /*
      * Constructor
      */
 
-    constructor()
-        public
-    {
+    constructor() public {
         operator = msg.sender;
         currentChildBlock = CHILD_BLOCK_INTERVAL;
         currentDepositBlock = 1;
@@ -109,10 +113,7 @@ contract RootChain {
      * @dev Allows Plasma chain operator to submit block root.
      * @param _root The root of a child chain block.
      */
-    function submitBlock(bytes32 _root)
-        public
-        onlyOperator
-    {
+    function submitBlock(bytes32 _root) public onlyOperator {
         plasmaBlocks[currentChildBlock] = PlasmaBlock({
             root: _root,
             timestamp: block.timestamp
@@ -149,8 +150,12 @@ contract RootChain {
      * @param _token Token type to deposit.
      * @param _amount Deposit amount.
      */
-    function startDepositExit(uint256 _depositPos, address _token, uint256 _amount)
-        public
+    function startDepositExit(
+        uint256 _depositPos,
+        address _token,
+        uint256 _amount
+    )
+        public payable onlyWithValue(EXIT_BOND)
     {
         uint256 blknum = _depositPos / 1000000000;
 
@@ -170,10 +175,7 @@ contract RootChain {
      * @param _token Token to withdraw.
      * @param _amount Amount in fees to withdraw.
      */
-    function startFeeExit(address _token, uint256 _amount)
-        public
-        onlyOperator
-    {
+    function startFeeExit(address _token, uint256 _amount) public payable onlyOperator onlyWithValue(EXIT_BOND) {
         addExitToQueue(currentFeeExit, msg.sender, _token, _amount, block.timestamp + 1);
         currentFeeExit = currentFeeExit.add(1);
     }
@@ -191,7 +193,7 @@ contract RootChain {
         bytes _proof,
         bytes _sigs
     )
-        public
+        public payable onlyWithValue(EXIT_BOND)
     {
         uint256 blknum = _utxoPos / 1000000000;
         uint256 txindex = (_utxoPos % 1000000000) / 10000;
@@ -243,6 +245,7 @@ contract RootChain {
 
         // Delete the owner but keep the amount to prevent another exit.
         delete exits[eUtxoPos].owner;
+        msg.sender.transfer(EXIT_BOND);
     }
 
     /**
@@ -250,11 +253,7 @@ contract RootChain {
      * @param _token Asset type to be exited.
      * @return A tuple of the position and time when this exit can be processed.
      */
-    function getNextExit(address _token)
-        public
-        view
-        returns (uint256, uint256)
-    {
+    function getNextExit(address _token) public view returns (uint256, uint256) {
         return PriorityQueue(exitsQueues[_token]).getMin();
     }
 
@@ -262,9 +261,7 @@ contract RootChain {
      * @dev Processes any exits that have completed the challenge period.
      * @param _token Token type to process.
      */
-    function finalizeExits(address _token)
-        public
-    {
+    function finalizeExits(address _token) public {
         uint256 utxoPos;
         uint256 exitableAt;
         (exitableAt, utxoPos) = getNextExit(_token);
@@ -277,7 +274,7 @@ contract RootChain {
             require(address(0) == _token, "Token must be ETH.");
 
             if (currentExit.owner != address(0)) {
-                currentExit.owner.transfer(currentExit.amount);
+                currentExit.owner.transfer(currentExit.amount + EXIT_BOND);
             }
 
             queue.delMin();
@@ -301,11 +298,7 @@ contract RootChain {
      * @param _blockNumber Number of the block to return.
      * @return Child chain block at the specified block number.
      */
-    function getPlasmaBlock(uint256 _blockNumber)
-        public
-        view
-        returns (bytes32, uint256)
-    {
+    function getPlasmaBlock(uint256 _blockNumber) public view returns (bytes32, uint256) {
         return (plasmaBlocks[_blockNumber].root, plasmaBlocks[_blockNumber].timestamp);
     }
 
@@ -313,11 +306,7 @@ contract RootChain {
      * @dev Determines the next deposit block number.
      * @return Block number to be given to the next deposit block.
      */
-    function getDepositBlock()
-        public
-        view
-        returns (uint256)
-    {
+    function getDepositBlock() public view returns (uint256) {
         return currentChildBlock.sub(CHILD_BLOCK_INTERVAL).add(currentDepositBlock);
     }
 
@@ -326,11 +315,7 @@ contract RootChain {
      * @param _utxoPos Position of the UTXO in the chain.
      * @return A tuple representing the active exit for the given UTXO.
      */
-    function getExit(uint256 _utxoPos)
-        public
-        view
-        returns (address, address, uint256)
-    {
+    function getExit(uint256 _utxoPos) public view returns (address, address, uint256) {
         return (exits[_utxoPos].owner, exits[_utxoPos].token, exits[_utxoPos].amount);
     }
 

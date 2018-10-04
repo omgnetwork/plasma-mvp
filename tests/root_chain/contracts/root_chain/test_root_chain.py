@@ -32,19 +32,20 @@ def test_start_deposit_exit(t, u, root_chain, assert_tx_failed):
     root_chain.deposit(value=value_1)
     expected_utxo_pos = encode_utxo_id(blknum, 0, 0)
     expected_exitable_at = t.chain.head_state.timestamp + two_weeks
-    root_chain.startDepositExit(expected_utxo_pos, NULL_ADDRESS, value_1)
+    exit_bond = root_chain.EXIT_BOND()
+    root_chain.startDepositExit(expected_utxo_pos, NULL_ADDRESS, value_1, value=exit_bond)
     exitable_at, utxo_pos = root_chain.getNextExit(NULL_ADDRESS)
     assert utxo_pos == expected_utxo_pos
     assert exitable_at == expected_exitable_at
     assert root_chain.exits(utxo_pos) == ['0x82a978b3f5962a5b0957d9ee9eef472ee55b42f1', NULL_ADDRESS_HEX, 100]
     # Same deposit cannot be exited twice
-    assert_tx_failed(lambda: root_chain.startDepositExit(utxo_pos, NULL_ADDRESS, value_1))
+    assert_tx_failed(lambda: root_chain.startDepositExit(utxo_pos, NULL_ADDRESS, value_1, value=exit_bond))
     # Fails if transaction sender is not the depositor
-    assert_tx_failed(lambda: root_chain.startDepositExit(utxo_pos, NULL_ADDRESS, value_1, sender=t.k1))
+    assert_tx_failed(lambda: root_chain.startDepositExit(utxo_pos, NULL_ADDRESS, value_1, sender=t.k1, value=exit_bond))
     # Fails if utxo_pos is wrong
-    assert_tx_failed(lambda: root_chain.startDepositExit(utxo_pos * 2, NULL_ADDRESS, value_1))
+    assert_tx_failed(lambda: root_chain.startDepositExit(utxo_pos * 2, NULL_ADDRESS, value_1, value=exit_bond))
     # Fails if value given is not equal to deposited value
-    assert_tx_failed(lambda: root_chain.startDepositExit(utxo_pos, NULL_ADDRESS, value_1 + 1))
+    assert_tx_failed(lambda: root_chain.startDepositExit(utxo_pos, NULL_ADDRESS, value_1 + 1, value=exit_bond))
 
 
 def test_start_fee_exit(t, u, root_chain, assert_tx_failed):
@@ -55,7 +56,8 @@ def test_start_fee_exit(t, u, root_chain, assert_tx_failed):
     expected_utxo_pos = root_chain.currentFeeExit()
     expected_exitable_at = t.chain.head_state.timestamp + two_weeks + 1
     assert root_chain.currentFeeExit() == 1
-    root_chain.startFeeExit(NULL_ADDRESS, 1)
+    exit_bond = root_chain.EXIT_BOND()
+    root_chain.startFeeExit(NULL_ADDRESS, 1, value=exit_bond)
     assert root_chain.currentFeeExit() == 2
     exitable_at, utxo_pos = root_chain.getNextExit(NULL_ADDRESS)
     fee_priority = exitable_at << 128 | utxo_pos
@@ -63,12 +65,12 @@ def test_start_fee_exit(t, u, root_chain, assert_tx_failed):
     assert exitable_at == expected_exitable_at
 
     expected_utxo_pos = encode_utxo_id(blknum, 0, 0)
-    root_chain.startDepositExit(expected_utxo_pos, NULL_ADDRESS, value_1)
+    root_chain.startDepositExit(expected_utxo_pos, NULL_ADDRESS, value_1, value=exit_bond)
     created_at, utxo_pos = root_chain.getNextExit(NULL_ADDRESS)
     deposit_priority = created_at << 128 | utxo_pos
     assert fee_priority > deposit_priority
     # Fails if transaction sender isn't the authority
-    assert_tx_failed(lambda: root_chain.startFeeExit(NULL_ADDRESS, 1, sender=t.k1))
+    assert_tx_failed(lambda: root_chain.startFeeExit(NULL_ADDRESS, 1, sender=t.k1, value=exit_bond))
 
 
 def test_start_exit(t, root_chain, assert_tx_failed):
@@ -88,12 +90,13 @@ def test_start_exit(t, root_chain, assert_tx_failed):
     sigs = tx1.sig1 + tx1.sig2 + confirmSig1
     utxoId = encode_utxo_id(dep_blknum, 0, 0)
     # Deposit exit
-    root_chain.startDepositExit(utxoId, NULL_ADDRESS, tx1.amount1, sender=key)
+    exit_bond = root_chain.EXIT_BOND()
+    root_chain.startDepositExit(utxoId, NULL_ADDRESS, tx1.amount1, sender=key, value=exit_bond)
 
     t.chain.head_state.timestamp += week_and_a_half
     # Cannot exit twice off of the same utxo
     utxo_pos1 = encode_utxo_id(dep_blknum, 0, 0)
-    assert_tx_failed(lambda: root_chain.startExit(utxo_pos1, deposit_tx_hash, proof, sigs, sender=key))
+    assert_tx_failed(lambda: root_chain.startExit(utxo_pos1, deposit_tx_hash, proof, sigs, sender=key, value=exit_bond))
     assert root_chain.getExit(utxo_pos1) == ['0x' + owner.hex(), NULL_ADDRESS_HEX, 100]
     t.chain.revert(snapshot)
 
@@ -112,7 +115,7 @@ def test_start_exit(t, root_chain, assert_tx_failed):
     snapshot = t.chain.snapshot()
     # # Single input exit
     utxo_pos2 = encode_utxo_id(child_blknum, 0, 0)
-    root_chain.startExit(utxo_pos2, tx_bytes2, proof, sigs, sender=key)
+    root_chain.startExit(utxo_pos2, tx_bytes2, proof, sigs, sender=key, value=exit_bond)
     assert root_chain.getExit(utxo_pos2) == ['0x' + owner.hex(), NULL_ADDRESS_HEX, 100]
     t.chain.revert(snapshot)
     dep2_blknum = root_chain.getDepositBlock()
@@ -134,7 +137,7 @@ def test_start_exit(t, root_chain, assert_tx_failed):
     sigs = tx3.sig1 + tx3.sig2 + confirmSig1 + confirmSig2
     # Double input exit
     utxo_pos3 = encode_utxo_id(child2_blknum, 0, 0)
-    root_chain.startExit(utxo_pos3, tx_bytes3, proof, sigs, sender=key)
+    root_chain.startExit(utxo_pos3, tx_bytes3, proof, sigs, sender=key, value=exit_bond)
     assert root_chain.getExit(utxo_pos3) == ['0x' + owner.hex(), NULL_ADDRESS_HEX, 100]
 
 
@@ -152,7 +155,8 @@ def test_challenge_exit(t, u, root_chain, assert_tx_failed):
     proof = merkle.create_membership_proof(deposit_tx_hash)
     confirmSig1 = confirm_tx(tx1, root_chain.getPlasmaBlock(utxo_pos1)[0], key)
     sigs = tx1.sig1 + tx1.sig2 + confirmSig1
-    root_chain.startDepositExit(utxo_pos1, NULL_ADDRESS, tx1.amount1, sender=key)
+    exit_bond = root_chain.EXIT_BOND()
+    root_chain.startDepositExit(utxo_pos1, NULL_ADDRESS, tx1.amount1, sender=key, value=exit_bond)
     tx3 = Transaction(utxo_pos2, 0, 0, 0, 0, 0,
                       NULL_ADDRESS,
                       owner, value_1, NULL_ADDRESS, 0)
@@ -200,11 +204,12 @@ def test_finalize_exits(t, u, root_chain):
     dep1_blknum = root_chain.getDepositBlock()
     root_chain.deposit(value=value_1, sender=key)
     utxo_pos1 = encode_utxo_id(dep1_blknum, 0, 0)
-    root_chain.startDepositExit(utxo_pos1, NULL_ADDRESS, tx1.amount1, sender=key)
+    exit_bond = root_chain.EXIT_BOND()
+    root_chain.startDepositExit(utxo_pos1, NULL_ADDRESS, tx1.amount1, sender=key, value=exit_bond)
     t.chain.head_state.timestamp += two_weeks * 2
     assert root_chain.exits(utxo_pos1) == ['0x' + owner.hex(), NULL_ADDRESS_HEX, 100]
     pre_balance = t.chain.head_state.get_balance(owner)
     root_chain.finalizeExits(sender=t.k2)
     post_balance = t.chain.head_state.get_balance(owner)
-    assert post_balance == pre_balance + value_1
+    assert post_balance == pre_balance + value_1 + exit_bond
     assert root_chain.exits(utxo_pos1) == [NULL_ADDRESS_HEX, NULL_ADDRESS_HEX, value_1]
