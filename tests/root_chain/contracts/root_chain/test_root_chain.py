@@ -93,7 +93,9 @@ def test_start_exit(t, root_chain, assert_tx_failed):
     t.chain.head_state.timestamp += week_and_a_half
     # Cannot exit twice off of the same utxo
     utxo_pos1 = encode_utxo_id(dep_blknum, 0, 0)
-    assert_tx_failed(lambda: root_chain.startExit(utxo_pos1, deposit_tx_hash, proof, sigs, sender=key))
+    exit_bond = root_chain.EXIT_BOND()
+    print(exit_bond)
+    assert_tx_failed(lambda: root_chain.startExit(utxo_pos1, deposit_tx_hash, proof, sigs, sender=key, value=exit_bond))
     assert root_chain.getExit(utxo_pos1) == ['0x' + owner.hex(), NULL_ADDRESS_HEX, 100]
     t.chain.revert(snapshot)
 
@@ -112,7 +114,7 @@ def test_start_exit(t, root_chain, assert_tx_failed):
     snapshot = t.chain.snapshot()
     # # Single input exit
     utxo_pos2 = encode_utxo_id(child_blknum, 0, 0)
-    root_chain.startExit(utxo_pos2, tx_bytes2, proof, sigs, sender=key)
+    root_chain.startExit(utxo_pos2, tx_bytes2, proof, sigs, sender=key, value=exit_bond)
     assert root_chain.getExit(utxo_pos2) == ['0x' + owner.hex(), NULL_ADDRESS_HEX, 100]
     t.chain.revert(snapshot)
     dep2_blknum = root_chain.getDepositBlock()
@@ -134,7 +136,7 @@ def test_start_exit(t, root_chain, assert_tx_failed):
     sigs = tx3.sig1 + tx3.sig2 + confirmSig1 + confirmSig2
     # Double input exit
     utxo_pos3 = encode_utxo_id(child2_blknum, 0, 0)
-    root_chain.startExit(utxo_pos3, tx_bytes3, proof, sigs, sender=key)
+    root_chain.startExit(utxo_pos3, tx_bytes3, proof, sigs, sender=key, value=exit_bond)
     assert root_chain.getExit(utxo_pos3) == ['0x' + owner.hex(), NULL_ADDRESS_HEX, 100]
 
 

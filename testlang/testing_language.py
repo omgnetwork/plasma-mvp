@@ -95,7 +95,10 @@ class TestingLanguage(object):
         (blknum, _, _) = decode_utxo_id(utxo_id)
         block = self.child_chain.get_block(blknum)
         proof = block.merkle.create_membership_proof(tx.merkle_hash)
+        exit_bond = self.root_chain.functions.EXIT_BOND().call()
+        print(exit_bond)
 
         self.root_chain.transact({
-            'from': exitor['address']
+            'from': exitor['address'],
+            'value': exit_bond
         }).startExit(utxo_id, tx.encoded, proof, sigs)
