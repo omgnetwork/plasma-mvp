@@ -155,7 +155,7 @@ contract RootChain {
         address _token,
         uint256 _amount
     )
-        public
+        public payable onlyWithValue(EXIT_BOND)
     {
         uint256 blknum = _depositPos / 1000000000;
 
@@ -175,7 +175,7 @@ contract RootChain {
      * @param _token Token to withdraw.
      * @param _amount Amount in fees to withdraw.
      */
-    function startFeeExit(address _token, uint256 _amount) public onlyOperator {
+    function startFeeExit(address _token, uint256 _amount) public payable onlyOperator onlyWithValue(EXIT_BOND) {
         addExitToQueue(currentFeeExit, msg.sender, _token, _amount, block.timestamp + 1);
         currentFeeExit = currentFeeExit.add(1);
     }

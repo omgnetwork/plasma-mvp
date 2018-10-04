@@ -84,8 +84,10 @@ class TestingLanguage(object):
     def start_deposit_exit(self, utxo_id, exitor):
         tx = self.child_chain.get_transaction(utxo_id)
 
+        exit_bond = self.root_chain.functions.EXIT_BOND().call()
         self.root_chain.transact({
-            'from': exitor['address']
+            'from': exitor['address'],
+            'value': exit_bond
         }).startDepositExit(utxo_id, NULL_ADDRESS_HEX, tx.amount1)
 
     def start_exit(self, utxo_id, exitor):
@@ -96,7 +98,6 @@ class TestingLanguage(object):
         block = self.child_chain.get_block(blknum)
         proof = block.merkle.create_membership_proof(tx.merkle_hash)
         exit_bond = self.root_chain.functions.EXIT_BOND().call()
-        print(exit_bond)
 
         self.root_chain.transact({
             'from': exitor['address'],
