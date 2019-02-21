@@ -28,7 +28,7 @@ library PlasmaRLP {
 
     function createExitingTx(bytes memory exitingTxBytes, uint256 oindex)
         internal
-        returns (exitingTx)
+        returns (exitingTx memory)
     {
         var txList = RLPDecode.toList(RLPDecode.toRlpItem(exitingTxBytes));
         return exitingTx({
