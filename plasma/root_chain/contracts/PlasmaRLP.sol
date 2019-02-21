@@ -16,7 +16,6 @@ library PlasmaRLP {
 
     function getUtxoPos(bytes memory challengingTxBytes, uint256 oIndex)
         internal
-        constant
         returns (uint256)
     {
         var txList = RLPDecode.toList(RLPDecode.toRlpItem(challengingTxBytes));
@@ -29,7 +28,6 @@ library PlasmaRLP {
 
     function createExitingTx(bytes memory exitingTxBytes, uint256 oindex)
         internal
-        constant
         returns (exitingTx)
     {
         var txList = RLPDecode.toList(RLPDecode.toRlpItem(exitingTxBytes));
