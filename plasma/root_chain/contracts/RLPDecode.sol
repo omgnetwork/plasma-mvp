@@ -150,7 +150,7 @@ library RLPDecode {
         return result == 0 ? false : true;
     }
 
-    function toAddress(RLPItem memory item) internal pure returns (address) {
+    function toAddress(RLPItem memory item) internal pure returns (address payable) {
         // 1 byte for the length prefix according to RLP spec
         require(item.len == 21, "Item must be 21 characters long.");
         

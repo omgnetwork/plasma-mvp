@@ -64,7 +64,7 @@ contract RootChain {
     mapping (address => address) public exitsQueues;
 
     struct Exit {
-        address owner;
+        address payable owner;
         address token;
         uint256 amount;
     }
@@ -334,7 +334,7 @@ contract RootChain {
      */
     function addExitToQueue(
         uint256 _utxoPos,
-        address _exitor,
+        address payable _exitor,
         address _token,
         uint256 _amount,
         uint256 _created_at

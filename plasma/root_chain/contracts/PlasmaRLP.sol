@@ -6,7 +6,7 @@ import "./RLPDecode.sol";
 library PlasmaRLP {
 
     struct exitingTx {
-        address exitor;
+        address payable exitor;
         address token;
         uint256 amount;
         uint256 inputCount;
@@ -31,6 +31,7 @@ library PlasmaRLP {
         returns (exitingTx memory)
     {
         RLPDecode.RLPItem[] memory txList = RLPDecode.toList(RLPDecode.toRlpItem(exitingTxBytes));
+//    address payable exitor = RLPDecode.toAddress(txList[7 + 2 * oindex]);
         return exitingTx({
             exitor: RLPDecode.toAddress(txList[7 + 2 * oindex]),
             token: RLPDecode.toAddress(txList[6]),
