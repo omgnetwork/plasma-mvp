@@ -134,7 +134,8 @@ library RLPEncode {
         assembly { 
             mstore(add(b, 32), _x) 
         }
-        for (uint i = 0; i < 32; i++) {
+        uint i = 0;
+        for (; i < 32; i++) {
             if (b[i] != 0) {
                 break;
             }
@@ -186,7 +187,8 @@ library RLPEncode {
         }
 
         uint len;
-        for (uint i = 0; i < _list.length; i++) {
+        uint i = 0;
+        for (; i < _list.length; i++) {
             len += _list[i].length;
         }
 
