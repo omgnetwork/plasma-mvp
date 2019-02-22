@@ -18,7 +18,7 @@ library Validate {
         bytes memory sig1 = ByteUtils.slice(sigs, 0, 65);
         bytes memory sig2 = ByteUtils.slice(sigs, 65, 65);
         bytes memory confSig1 = ByteUtils.slice(sigs, 130, 65);
-        bytes32 confirmationHash = keccak256(txHash, rootHash);
+        bytes32 confirmationHash = keccak256(abi.encodePacked(txHash, rootHash));
 
         bool check1 = true;
         bool check2 = true;

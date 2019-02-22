@@ -164,7 +164,7 @@ contract RootChain {
 
         // Validate the given owner and amount.
         bytes32 root = plasmaBlocks[blknum].root;
-        bytes32 depositHash = keccak256(msg.sender, _token, _amount);
+        bytes32 depositHash = keccak256(abi.encodePacked(msg.sender, _token, _amount));
         require(root == depositHash, "Root hash must match deposit hash.");
 
         addExitToQueue(_depositPos, msg.sender, _token, _amount, plasmaBlocks[blknum].timestamp);
@@ -205,7 +205,7 @@ contract RootChain {
 
         // Check the transaction was included in the chain and is correctly signed.
         bytes32 root = plasmaBlocks[blknum].root;
-        bytes32 merkleHash = keccak256(keccak256(_txBytes), ByteUtils.slice(_sigs, 0, 130));
+        bytes32 merkleHash = keccak256(abi.encodePacked(keccak256(_txBytes), ByteUtils.slice(_sigs, 0, 130)));
         require(Validate.checkSigs(keccak256(_txBytes), root, exitingTx.inputCount, _sigs), "Signatures must match.");
         require(merkleHash.checkMembership(txindex, root, _proof), "Transaction Merkle proof is invalid.");
 
@@ -235,8 +235,8 @@ contract RootChain {
         uint256 txindex = (_cUtxoPos % 1000000000) / 10000;
         bytes32 root = plasmaBlocks[_cUtxoPos / 1000000000].root;
         bytes32 txHash = keccak256(_txBytes);
-        bytes32 confirmationHash = keccak256(txHash, root);
-        bytes32 merkleHash = keccak256(txHash, _sigs);
+        bytes32 confirmationHash = keccak256(abi.encodePacked(txHash, root));
+        bytes32 merkleHash = keccak256(abi.encodePacked(txHash, _sigs));
         address owner = exits[eUtxoPos].owner;
 
         // Validate the spending transaction.
