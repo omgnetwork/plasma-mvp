@@ -18,7 +18,7 @@ library PlasmaRLP {
         internal
         returns (uint256)
     {
-        var txList = RLPDecode.toList(RLPDecode.toRlpItem(challengingTxBytes));
+        RLPDecode.RLPItem[] memory txList = RLPDecode.toList(RLPDecode.toRlpItem(challengingTxBytes));
         uint256 oIndexShift = oIndex * 3;
         return
             RLPDecode.toUint(txList[0 + oIndexShift]) * 1000000000 +
@@ -30,7 +30,7 @@ library PlasmaRLP {
         internal
         returns (exitingTx memory)
     {
-        var txList = RLPDecode.toList(RLPDecode.toRlpItem(exitingTxBytes));
+        RLPDecode.RLPItem[] memory txList = RLPDecode.toList(RLPDecode.toRlpItem(exitingTxBytes));
         return exitingTx({
             exitor: RLPDecode.toAddress(txList[7 + 2 * oindex]),
             token: RLPDecode.toAddress(txList[6]),

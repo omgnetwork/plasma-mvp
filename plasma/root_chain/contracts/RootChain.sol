@@ -200,7 +200,7 @@ contract RootChain {
         uint256 oindex = _utxoPos - blknum * 1000000000 - txindex * 10000;
 
         // Check the sender owns this UTXO.
-        var exitingTx = _txBytes.createExitingTx(oindex);
+        PlasmaRLP.exitingTx memory exitingTx = _txBytes.createExitingTx(oindex);
         require(msg.sender == exitingTx.exitor, "Sender must be exitor.");
 
         // Check the transaction was included in the chain and is correctly signed.
@@ -234,9 +234,9 @@ contract RootChain {
         uint256 eUtxoPos = _txBytes.getUtxoPos(_eUtxoIndex);
         uint256 txindex = (_cUtxoPos % 1000000000) / 10000;
         bytes32 root = plasmaBlocks[_cUtxoPos / 1000000000].root;
-        var txHash = keccak256(_txBytes);
-        var confirmationHash = keccak256(txHash, root);
-        var merkleHash = keccak256(txHash, _sigs);
+        bytes32 txHash = keccak256(_txBytes);
+        bytes32 confirmationHash = keccak256(txHash, root);
+        bytes32 merkleHash = keccak256(txHash, _sigs);
         address owner = exits[eUtxoPos].owner;
 
         // Validate the spending transaction.
