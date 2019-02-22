@@ -18,7 +18,7 @@ library RLPEncode {
      */
     function encodeBytes(bytes memory self) internal pure returns (bytes memory) {
         bytes memory encoded;
-        if (self.length == 1 && uint(self[0]) <= 128) {
+        if (self.length == 1 && uint8(self[0]) <= 128) {
             encoded = self;
         } else {
             encoded = concat(encodeLength(self.length, 128), self);
@@ -105,7 +105,7 @@ library RLPEncode {
         bytes memory encoded;
         if (len < 56) {
             encoded = new bytes(1);
-            encoded[0] = byte(len + offset);
+            encoded[0] = byte(uint8(len) + uint8(offset));
         } else {
             uint lenLen;
             uint i = 1;
@@ -115,9 +115,9 @@ library RLPEncode {
             }
 
             encoded = new bytes(lenLen + 1);
-            encoded[0] = byte(lenLen + offset + 55);
+            encoded[0] = byte(uint8(lenLen) + uint8(offset) + 55);
             for(i = 1; i <= lenLen; i++) {
-                encoded[i] = byte((len / (256**(lenLen-i))) % 256);
+                encoded[i] = byte(uint8((len / (256**(lenLen-i))) % 256));
             }
         }
         return encoded;
