@@ -189,9 +189,9 @@ contract RootChain {
      */
     function startExit(
         uint256 _utxoPos,
-        bytes _txBytes,
-        bytes _proof,
-        bytes _sigs
+        bytes memory _txBytes,
+        bytes memory _proof,
+        bytes memory _sigs
     )
         public payable onlyWithValue(EXIT_BOND)
     {
@@ -224,10 +224,10 @@ contract RootChain {
     function challengeExit(
         uint256 _cUtxoPos,
         uint256 _eUtxoIndex,
-        bytes _txBytes,
-        bytes _proof,
-        bytes _sigs,
-        bytes _confirmationSig
+        bytes memory _txBytes,
+        bytes memory _proof,
+        bytes memory _sigs,
+        bytes memory _confirmationSig
     )
         public
     {
