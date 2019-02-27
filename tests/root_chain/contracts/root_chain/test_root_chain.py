@@ -209,7 +209,7 @@ def test_finalize_exits(t, u, root_chain):
     t.chain.head_state.timestamp += two_weeks * 2
     assert root_chain.exits(utxo_pos1) == ['0x' + owner.hex(), NULL_ADDRESS_HEX, 100]
     pre_balance = t.chain.head_state.get_balance(owner)
-    root_chain.finalizeExits(sender=t.k2)
+    root_chain.finalizeExits(NULL_ADDRESS, sender=t.k2)
     post_balance = t.chain.head_state.get_balance(owner)
     assert post_balance == pre_balance + value_1 + exit_bond
     assert root_chain.exits(utxo_pos1) == [NULL_ADDRESS_HEX, NULL_ADDRESS_HEX, value_1]
