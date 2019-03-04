@@ -1,4 +1,4 @@
-pragma solidity ^0.4.0;
+pragma solidity ^0.5.0;
 
 
 /**
@@ -16,9 +16,9 @@ library RLPEncode {
      * @param self The byte string to encode.
      * @return The RLP encoded string in bytes.
      */
-    function encodeBytes(bytes memory self) internal pure returns (bytes) {
+    function encodeBytes(bytes memory self) internal pure returns (bytes memory) {
         bytes memory encoded;
-        if (self.length == 1 && uint(self[0]) <= 128) {
+        if (self.length == 1 && uint8(self[0]) <= 128) {
             encoded = self;
         } else {
             encoded = concat(encodeLength(self.length, 128), self);
@@ -31,7 +31,7 @@ library RLPEncode {
      * @param self The list of RLP encoded byte strings.
      * @return The RLP encoded list of items in bytes.
      */
-    function encodeList(bytes[] memory self) internal pure returns (bytes) {
+    function encodeList(bytes[] memory self) internal pure returns (bytes memory) {
         bytes memory list = flatten(self);
         return concat(encodeLength(list.length, 192), list);
     }
@@ -41,7 +41,7 @@ library RLPEncode {
      * @param self The string to encode.
      * @return The RLP encoded string in bytes.
      */
-    function encodeString(string memory self) internal pure returns (bytes) {
+    function encodeString(string memory self) internal pure returns (bytes memory) {
         return encodeBytes(bytes(self));
     }
 
@@ -50,7 +50,7 @@ library RLPEncode {
      * @param self The address to encode.
      * @return The RLP encoded address in bytes.
      */
-    function encodeAddress(address self) internal pure returns (bytes) {
+    function encodeAddress(address self) internal pure returns (bytes memory) {
         bytes memory inputBytes;
         assembly {
             let m := mload(0x40)
@@ -66,7 +66,7 @@ library RLPEncode {
      * @param self The uint to encode.
      * @return The RLP encoded uint in bytes.
      */
-    function encodeUint(uint self) internal pure returns (bytes) {
+    function encodeUint(uint self) internal pure returns (bytes memory) {
         return encodeBytes(toBinary(self));
     }
 
@@ -75,7 +75,7 @@ library RLPEncode {
      * @param self The int to encode.
      * @return The RLP encoded int in bytes.
      */
-    function encodeInt(int self) internal pure returns (bytes) {
+    function encodeInt(int self) internal pure returns (bytes memory) {
         return encodeUint(uint(self));
     }
 
@@ -84,7 +84,7 @@ library RLPEncode {
      * @param self The bool to encode.
      * @return The RLP encoded bool in bytes.
      */
-    function encodeBool(bool self) internal pure returns (bytes) {
+    function encodeBool(bool self) internal pure returns (bytes memory) {
         bytes memory encoded = new bytes(1);
         encoded[0] = (self ? bytes1(0x01) : bytes1(0x80));
         return encoded;
@@ -101,11 +101,11 @@ library RLPEncode {
      * @param offset 128 if item is string, 192 if item is list.
      * @return RLP encoded bytes.
      */
-    function encodeLength(uint len, uint offset) private pure returns (bytes) {
+    function encodeLength(uint len, uint offset) private pure returns (bytes memory) {
         bytes memory encoded;
         if (len < 56) {
             encoded = new bytes(1);
-            encoded[0] = byte(len + offset);
+            encoded[0] = byte(uint8(len) + uint8(offset));
         } else {
             uint lenLen;
             uint i = 1;
@@ -115,9 +115,9 @@ library RLPEncode {
             }
 
             encoded = new bytes(lenLen + 1);
-            encoded[0] = byte(lenLen + offset + 55);
+            encoded[0] = byte(uint8(lenLen) + uint8(offset) + 55);
             for(i = 1; i <= lenLen; i++) {
-                encoded[i] = byte((len / (256**(lenLen-i))) % 256);
+                encoded[i] = byte(uint8((len / (256**(lenLen-i))) % 256));
             }
         }
         return encoded;
@@ -129,12 +129,13 @@ library RLPEncode {
      * @param _x The integer to encode.
      * @return RLP encoded bytes.
      */
-    function toBinary(uint _x) private pure returns (bytes) {
+    function toBinary(uint _x) private pure returns (bytes memory) {
         bytes memory b = new bytes(32);
         assembly { 
             mstore(add(b, 32), _x) 
         }
-        for (uint i = 0; i < 32; i++) {
+        uint i = 0;
+        for (; i < 32; i++) {
             if (b[i] != 0) {
                 break;
             }
@@ -180,13 +181,14 @@ library RLPEncode {
      * @param _list List of byte strings to flatten.
      * @return The flattened byte string.
      */
-    function flatten(bytes[] memory _list) private pure returns (bytes) {
+    function flatten(bytes[] memory _list) private pure returns (bytes memory) {
         if (_list.length == 0) {
             return new bytes(0);
         }
 
         uint len;
-        for (uint i = 0; i < _list.length; i++) {
+        uint i = 0;
+        for (; i < _list.length; i++) {
             len += _list[i].length;
         }
 
@@ -214,7 +216,7 @@ library RLPEncode {
      * @param _postBytes Second byte string.
      * @return Both byte string combined.
      */
-    function concat(bytes memory _preBytes, bytes memory _postBytes) private pure returns (bytes) {
+    function concat(bytes memory _preBytes, bytes memory _postBytes) private pure returns (bytes memory) {
         bytes memory tempBytes;
 
         assembly {

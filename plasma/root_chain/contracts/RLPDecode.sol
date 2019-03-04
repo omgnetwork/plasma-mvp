@@ -1,4 +1,4 @@
-pragma solidity ^0.4.0;
+pragma solidity ^0.5.0;
 
 
 /**
@@ -150,7 +150,7 @@ library RLPDecode {
         return result == 0 ? false : true;
     }
 
-    function toAddress(RLPItem memory item) internal pure returns (address) {
+    function toAddress(RLPItem memory item) internal pure returns (address payable) {
         // 1 byte for the length prefix according to RLP spec
         require(item.len == 21, "Item must be 21 characters long.");
         
@@ -176,7 +176,7 @@ library RLPDecode {
         return result;
     }
 
-    function toBytes(RLPItem memory item) internal pure returns (bytes) {
+    function toBytes(RLPItem memory item) internal pure returns (bytes memory) {
         uint offset = _payloadOffset(item.memPtr);
         uint len = item.len - offset; // data length
         bytes memory result = new bytes(len);

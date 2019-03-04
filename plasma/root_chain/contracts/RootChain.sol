@@ -1,4 +1,4 @@
-pragma solidity ^0.4.0;
+pragma solidity ^0.5.0;
 
 import "./SafeMath.sol";
 import "./Math.sol";
@@ -64,7 +64,7 @@ contract RootChain {
     mapping (address => address) public exitsQueues;
 
     struct Exit {
-        address owner;
+        address payable owner;
         address token;
         uint256 amount;
     }
@@ -164,7 +164,7 @@ contract RootChain {
 
         // Validate the given owner and amount.
         bytes32 root = plasmaBlocks[blknum].root;
-        bytes32 depositHash = keccak256(msg.sender, _token, _amount);
+        bytes32 depositHash = keccak256(abi.encodePacked(msg.sender, _token, _amount));
         require(root == depositHash, "Root hash must match deposit hash.");
 
         addExitToQueue(_depositPos, msg.sender, _token, _amount, plasmaBlocks[blknum].timestamp);
@@ -189,9 +189,9 @@ contract RootChain {
      */
     function startExit(
         uint256 _utxoPos,
-        bytes _txBytes,
-        bytes _proof,
-        bytes _sigs
+        bytes memory _txBytes,
+        bytes memory _proof,
+        bytes memory _sigs
     )
         public payable onlyWithValue(EXIT_BOND)
     {
@@ -200,12 +200,12 @@ contract RootChain {
         uint256 oindex = _utxoPos - blknum * 1000000000 - txindex * 10000;
 
         // Check the sender owns this UTXO.
-        var exitingTx = _txBytes.createExitingTx(oindex);
+        PlasmaRLP.exitingTx memory exitingTx = _txBytes.createExitingTx(oindex);
         require(msg.sender == exitingTx.exitor, "Sender must be exitor.");
 
         // Check the transaction was included in the chain and is correctly signed.
         bytes32 root = plasmaBlocks[blknum].root;
-        bytes32 merkleHash = keccak256(keccak256(_txBytes), ByteUtils.slice(_sigs, 0, 130));
+        bytes32 merkleHash = keccak256(abi.encodePacked(keccak256(_txBytes), ByteUtils.slice(_sigs, 0, 130)));
         require(Validate.checkSigs(keccak256(_txBytes), root, exitingTx.inputCount, _sigs), "Signatures must match.");
         require(merkleHash.checkMembership(txindex, root, _proof), "Transaction Merkle proof is invalid.");
 
@@ -224,19 +224,19 @@ contract RootChain {
     function challengeExit(
         uint256 _cUtxoPos,
         uint256 _eUtxoIndex,
-        bytes _txBytes,
-        bytes _proof,
-        bytes _sigs,
-        bytes _confirmationSig
+        bytes memory _txBytes,
+        bytes memory _proof,
+        bytes memory _sigs,
+        bytes memory _confirmationSig
     )
         public
     {
         uint256 eUtxoPos = _txBytes.getUtxoPos(_eUtxoIndex);
         uint256 txindex = (_cUtxoPos % 1000000000) / 10000;
         bytes32 root = plasmaBlocks[_cUtxoPos / 1000000000].root;
-        var txHash = keccak256(_txBytes);
-        var confirmationHash = keccak256(txHash, root);
-        var merkleHash = keccak256(txHash, _sigs);
+        bytes32 txHash = keccak256(_txBytes);
+        bytes32 confirmationHash = keccak256(abi.encodePacked(txHash, root));
+        bytes32 merkleHash = keccak256(abi.encodePacked(txHash, _sigs));
         address owner = exits[eUtxoPos].owner;
 
         // Validate the spending transaction.
@@ -334,7 +334,7 @@ contract RootChain {
      */
     function addExitToQueue(
         uint256 _utxoPos,
-        address _exitor,
+        address payable _exitor,
         address _token,
         uint256 _amount,
         uint256 _created_at

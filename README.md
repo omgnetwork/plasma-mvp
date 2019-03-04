@@ -35,7 +35,7 @@ Plasma MVP is split into four main parts: `root_chain`, `child_chain`, `client`,
 
 This project has a few pre-installation dependencies.
 
-#### [Solidity](https://solidity.readthedocs.io/en/latest/installing-solidity.html)
+#### [Solidity ^0.5.0](https://solidity.readthedocs.io/en/latest/installing-solidity.html)
 
 Mac:
 ```sh

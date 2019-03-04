@@ -1,4 +1,4 @@
-pragma solidity ^0.4.0;
+pragma solidity ^0.5.0;
 
 
 /**
@@ -16,7 +16,7 @@ library ECRecovery {
      * @param _sig Signature over the signed message.
      * @return Address that signed the hash.
      */
-    function recover(bytes32 _hash, bytes _sig) internal pure returns (address) {
+    function recover(bytes32 _hash, bytes memory _sig) internal pure returns (address) {
         bytes32 r;
         bytes32 s;
         uint8 v;

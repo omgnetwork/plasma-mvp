@@ -1,4 +1,4 @@
-pragma solidity ^0.4.0;
+pragma solidity ^0.5.0;
 
 
 /**
@@ -22,7 +22,7 @@ library Merkle {
         bytes32 _leaf,
         uint256 _index,
         bytes32 _rootHash,
-        bytes _proof
+        bytes memory _proof
     ) internal pure returns (bool) {
         // Check that the proof length is valid.
         require(_proof.length % 32 == 0, "Invalid proof length.");

@@ -1,4 +1,4 @@
-pragma solidity ^0.4.0;
+pragma solidity ^0.5.0;
 
 
 /**
@@ -17,7 +17,7 @@ library ByteUtils {
      * @param _length Length of the slice.
      * @return The slice of the byte string.
      */
-    function slice(bytes _bytes, uint _start, uint _length) internal pure returns (bytes) {
+    function slice(bytes memory _bytes, uint _start, uint _length) internal pure returns (bytes memory) {
         require(_bytes.length >= (_start + _length), "Slice length cannot be longer than _bytes length");
 
         bytes memory tempBytes;
