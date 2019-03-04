@@ -1,3 +1,6 @@
+# Notice!
+This is an old research repo. No active work is being done here. Efforts in the direction of production-ready MVP plasma chain (MoreVP, ERC20, audits) are in https://github.com/omisego/plasma-contracts.
+
 # Plasma MVP
 
 We're implementing [Minimum Viable Plasma](https://ethresear.ch/t/minimal-viable-plasma/426). This repository represents a work in progress and will undergo large-scale modifications as requirements change.
